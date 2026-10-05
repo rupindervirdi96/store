@@ -1,0 +1,22 @@
+{
+  "name": "store-app",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=20.19"
+  },
+  "scripts": {
+    "build:shared": "npm run build -w @store/shared",
+    "dev:api": "npm run build:shared && npm run dev -w @store/api",
+    "dev:web": "npm run build:shared && npm run dev -w @store/web",
+    "dev:mobile": "npm run build:shared && npm run start -w @store/mobile",
+    "build:api": "npm run build:shared && npm run build -w @store/api",
+    "build:web": "npm run build:shared && npm run build -w @store/web",
+    "seed": "npm run seed -w @store/api",
+    "typecheck": "npm run build:shared && npm run typecheck --workspaces --if-present"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "StoreApp",
+    "slug": "store-app",
+    "scheme": "storeapp",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "bundleIdentifier": "com.example.storeapp",
+      "supportsTablet": false
+    },
+    "android": {
+      "package": "com.example.storeapp"
+    },
+    "plugins": [
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "color": "#1f57d0"
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": ""
+      }
+    }
+  }
+}
