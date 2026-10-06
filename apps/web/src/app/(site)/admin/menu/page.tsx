@@ -161,9 +161,10 @@ export default function MenuAdminPage() {
               {g.items.map((p) => (
                 <li
                   key={p.id}
-                  className={`flex flex-wrap items-center gap-x-4 gap-y-3 px-4 py-3 sm:flex-nowrap ${busy.has(p.id) ? 'opacity-60' : ''}`}
+                  // Phones: item details on top, controls on a second line. Wider: one row.
+                  className={`flex flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:gap-4 ${busy.has(p.id) ? 'opacity-60' : ''}`}
                 >
-                  <Link href={`/admin/menu/${p.id}`} className="flex min-w-0 flex-1 items-center gap-3">
+                  <Link href={`/admin/menu/${p.id}`} className="flex min-w-0 items-center gap-3 md:flex-1">
                     <div className="h-14 w-[4.5rem] shrink-0 overflow-hidden rounded-lg bg-stone-100">
                       {p.images[0] ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -187,7 +188,8 @@ export default function MenuAdminPage() {
                     </div>
                   </Link>
 
-                  <div className="w-28 text-right text-sm tabular-nums">
+                  <div className="flex items-center justify-between gap-3 md:justify-end md:gap-4">
+                  <div className="text-sm tabular-nums md:w-28 md:text-right">
                     <p className="font-semibold">{formatPrice(p.price)}</p>
                     {p.compareAtPrice != null && <p className="text-xs text-stone-400 line-through">{formatPrice(p.compareAtPrice)}</p>}
                   </div>
@@ -222,6 +224,7 @@ export default function MenuAdminPage() {
                   <Link href={`/admin/menu/${p.id}`} className="btn-secondary px-4 py-1.5">
                     Edit
                   </Link>
+                  </div>
                 </li>
               ))}
             </ul>

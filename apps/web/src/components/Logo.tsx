@@ -14,7 +14,7 @@ export function Logo({ light = false }: { light?: boolean }) {
           />
         </svg>
       </span>
-      <span className={`font-display text-lg font-bold tracking-tight ${light ? 'text-white' : 'text-ink'}`}>
+      <span className={`whitespace-nowrap font-display text-lg font-bold tracking-tight ${light ? 'text-white' : 'text-ink'}`}>
         {store.name}
       </span>
     </Link>

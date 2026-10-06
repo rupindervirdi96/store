@@ -77,7 +77,9 @@ export default function CategoriesAdminPage() {
                   }}
                 />
               ) : (
-                <div key={c.id} className="flex flex-wrap items-center gap-4 p-4 sm:flex-nowrap">
+                // Phones: details on top, controls below. Wider: one row.
+                <div key={c.id} className="flex flex-col gap-3 p-4 md:flex-row md:items-center md:gap-4">
+                  <div className="flex min-w-0 items-center gap-3 md:flex-1 md:gap-4">
                   <div className="flex flex-col">
                     <button
                       className="rounded px-1.5 text-stone-400 hover:bg-stone-100 hover:text-stone-700 disabled:invisible"
@@ -116,6 +118,8 @@ export default function CategoriesAdminPage() {
                       )}
                     </div>
                   </div>
+                  </div>
+                  <div className="flex items-center justify-end gap-2 md:gap-3">
                   <Toggle checked={c.isActive} onChange={(v) => void patch(c, { isActive: v })} label={`Show ${c.name}`} />
                   <button className="btn-secondary px-4 py-1.5" onClick={() => setEditing(c.id)}>
                     Edit
@@ -128,6 +132,7 @@ export default function CategoriesAdminPage() {
                   >
                     Delete
                   </button>
+                  </div>
                 </div>
               ),
             )
