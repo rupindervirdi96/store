@@ -8,6 +8,11 @@ export async function create(req: Request, res: Response) {
   res.status(201).json(order);
 }
 
+export async function resumeCheckout(req: Request, res: Response) {
+  const { id } = parse(IdParams, req.params);
+  res.json(await orderService.resumeCheckout(id, req.user!.id));
+}
+
 export async function listMine(req: Request, res: Response) {
   res.json(await orderService.listMine(req.user!.id, parse(ListOrdersQuery, req.query)));
 }

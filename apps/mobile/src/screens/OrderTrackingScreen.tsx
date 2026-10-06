@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, Text, View } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
 import type { OrderDTO } from '@store/shared';
 import { Button } from '../components/Button';
 import { OrderTimeline } from '../components/OrderTimeline';
@@ -9,6 +10,7 @@ import { api, ApiError } from '../lib/api';
 import { formatDateTime, formatPrice, shortId } from '../lib/format';
 import type { RootScreenProps } from '../navigation/types';
 import { useAuth } from '../store/auth';
+import { useCart } from '../store/cart';
 import { colors, ui } from '../theme';
 
 export function OrderTrackingScreen({ route }: RootScreenProps<'OrderTracking'>) {
@@ -26,14 +28,32 @@ export function OrderTrackingScreen({ route }: RootScreenProps<'OrderTracking'>)
 
   useEffect(load, [load]);
 
+  const clearCart = useCart((s) => s.clear);
   // Real-time: status pushes arrive on this user's private socket room.
   useSocketEvent('order:updated', (updated) => {
-    if (updated.id === id) setOrder(updated);
+    if (updated.id !== id) return;
+    // Payment confirmed while watching: the cart has been bought.
+    if (order?.status === 'Awaiting Payment' && updated.paymentStatus === 'Paid') clearCart();
+    setOrder(updated);
   });
   const live = useSocketStatus(load);
 
+  const [paying, setPaying] = useState(false);
+  async function payNow() {
+    setPaying(true);
+    try {
+      const { checkoutUrl } = await api<{ checkoutUrl: string }>(`/orders/${id}/checkout`, { token });
+      await WebBrowser.openBrowserAsync(checkoutUrl, { dismissButtonStyle: 'done' });
+    } catch (e) {
+      Alert.alert('Payment', e instanceof ApiError ? e.message : 'Could not open the payment page');
+    } finally {
+      setPaying(false);
+      load();
+    }
+  }
+
   const cancel = () =>
-    Alert.alert('Cancel order?', 'This cannot be undone.', [
+    Alert.alert('Cancel order?', order?.paymentStatus === 'Paid' ? 'You will get a full refund to your card.' : 'This cannot be undone.', [
       { text: 'Keep order', style: 'cancel' },
       {
         text: 'Cancel order',
@@ -67,9 +87,23 @@ export function OrderTrackingScreen({ route }: RootScreenProps<'OrderTracking'>)
         </View>
       </View>
 
-      <View style={ui.card}>
-        <OrderTimeline order={order} />
-      </View>
+      {order.status === 'Awaiting Payment' ? (
+        <View style={[ui.card, { gap: 12 }]}>
+          <Text style={ui.h2}>Waiting for payment</Text>
+          <Text style={ui.muted}>
+            Your items are reserved
+            {order.paymentExpiresAt
+              ? ` until ${new Date(order.paymentExpiresAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`
+              : ''}
+            . The kitchen starts once payment is complete.
+          </Text>
+          <Button title={`Pay ${formatPrice(order.totalAmount)}`} onPress={payNow} loading={paying} />
+        </View>
+      ) : (
+        <View style={ui.card}>
+          <OrderTimeline order={order} />
+        </View>
+      )}
 
       <View style={[ui.card, { gap: 6 }]}>
         {order.items.map((i) => (
@@ -86,7 +120,14 @@ export function OrderTrackingScreen({ route }: RootScreenProps<'OrderTracking'>)
         </View>
       </View>
 
-      {order.status === 'Pending' && <Button title="Cancel order" variant="danger" onPress={cancel} loading={cancelling} />}
+      {(order.status === 'Pending' || order.status === 'Awaiting Payment') && (
+        <Button
+          title={order.paymentStatus === 'Paid' ? 'Cancel & refund' : 'Cancel order'}
+          variant="danger"
+          onPress={cancel}
+          loading={cancelling}
+        />
+      )}
     </ScrollView>
   );
 }

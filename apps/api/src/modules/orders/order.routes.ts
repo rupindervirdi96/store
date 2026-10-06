@@ -10,6 +10,7 @@ orderRouter.use(requireAuth);
 orderRouter.post('/', requireRole('customer'), ctrl.create);
 orderRouter.get('/mine', ctrl.listMine);
 orderRouter.post('/:id/cancel', requireRole('customer'), ctrl.cancel);
+orderRouter.get('/:id/checkout', requireRole('customer'), ctrl.resumeCheckout);
 
 // Admin
 orderRouter.get('/', requireRole('admin'), ctrl.listAll);

@@ -8,6 +8,7 @@ export const ROLES = ['customer', 'admin'] as const;
 export type Role = (typeof ROLES)[number];
 
 export const ORDER_STATUSES = [
+  'Awaiting Payment',
   'Pending',
   'Confirmed',
   'Preparing',
@@ -17,8 +18,13 @@ export const ORDER_STATUSES = [
 ] as const;
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
-/** Allowed forward transitions. Delivered and Cancelled are terminal. */
+/**
+ * Allowed forward transitions. Delivered and Cancelled are terminal.
+ * "Awaiting Payment" → "Pending" happens only when Stripe confirms payment;
+ * the kitchen never sees unpaid orders.
+ */
 export const ORDER_STATUS_TRANSITIONS: Record<OrderStatus, readonly OrderStatus[]> = {
+  'Awaiting Payment': ['Pending', 'Cancelled'],
   Pending: ['Confirmed', 'Cancelled'],
   Confirmed: ['Preparing', 'Cancelled'],
   Preparing: ['Out for Delivery', 'Cancelled'],
@@ -42,6 +48,9 @@ export const ORDER_PROGRESS: readonly OrderStatus[] = [
 
 export const PAYMENT_STATUSES = ['Pending', 'Paid', 'Failed', 'Refunded'] as const;
 export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
+
+/** All prices are in this currency (ISO 4217). */
+export const CURRENCY = 'CAD';
 
 export const SOCKET_EVENTS = {
   /** server -> admins: a new order was placed */
@@ -154,6 +163,8 @@ export interface OrderDTO {
   status: OrderStatus;
   statusHistory: OrderStatusEventDTO[];
   paymentStatus: PaymentStatus;
+  /** While "Awaiting Payment": when the Stripe checkout link stops working. */
+  paymentExpiresAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -174,6 +185,14 @@ export interface Paginated<T> {
 export interface CreateOrderInput {
   items: { productId: string; quantity: number }[];
   shippingAddress: Address;
+  /** Where Stripe should send the customer back to. Defaults to the website. */
+  returnTo?: 'web' | 'app';
+}
+
+/** POST /orders: the order (Awaiting Payment) plus the Stripe Checkout page to send the customer to. */
+export interface CheckoutResponse {
+  order: OrderDTO;
+  checkoutUrl: string;
 }
 
 export interface ServerToClientEvents {

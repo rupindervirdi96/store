@@ -93,7 +93,9 @@ Design decisions:
 | PATCH | `/products/:id` | admin | Edit fields or toggle `isActive` |
 | PATCH | `/products/:id/stock` | admin | `{ delta }` (atomic, never below 0) or `{ set }` |
 | DELETE | `/products/:id` | admin | Archive (soft delete) |
-| POST | `/orders` | customer | Place an order `{ items:[{productId, quantity}], shippingAddress }` |
+| POST | `/orders` | customer | Reserve stock, create the order as `Awaiting Payment` and a Stripe Checkout session → `{ order, checkoutUrl }` |
+| GET | `/orders/:id/checkout` | owner | Re-open the Stripe page for an unpaid order (while it hasn't expired) |
+| POST | `/payments/webhook` | Stripe (signed) | Payment confirmations, expiries and refunds |
 | GET | `/orders/mine` | auth | Own orders, newest first |
 | GET | `/orders/:id` | owner or admin | Order detail (404 for other users) |
 | POST | `/orders/:id/cancel` | owner | Cancel while still `Pending` |

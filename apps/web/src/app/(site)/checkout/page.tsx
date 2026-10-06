@@ -1,8 +1,7 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useState, type FormEvent } from 'react';
-import type { Address, CreateOrderInput, OrderDTO } from '@store/shared';
+import { useEffect, useState, type FormEvent } from 'react';
+import type { Address, CheckoutResponse, CreateOrderInput } from '@store/shared';
 import { RequireAuth } from '@/components/RequireAuth';
 import { api, ApiError } from '@/lib/api';
 import { formatPrice } from '@/lib/format';
@@ -20,12 +19,21 @@ const FIELDS: { name: keyof Address; label: string; required?: boolean; span?: b
 ];
 
 function CheckoutForm() {
-  const router = useRouter();
   const token = useAuth((s) => s.token);
   const savedAddress = useAuth((s) => s.user?.addresses[0]);
-  const { items, clear } = useCart();
+  const { items } = useCart();
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // Back from Stripe via "←" / cancel: release the reserved order. The cart is untouched.
+  useEffect(() => {
+    const cancelled = new URLSearchParams(window.location.search).get('cancelled');
+    if (!cancelled || !/^[a-f0-9]{24}$/.test(cancelled)) return;
+    window.history.replaceState(null, '', '/checkout');
+    setNotice('Payment was cancelled — nothing was charged. Your cart is still here.');
+    void api(`/orders/${cancelled}/cancel`, { method: 'POST', token }).catch(() => undefined);
+  }, [token]);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -43,11 +51,10 @@ function CheckoutForm() {
     };
 
     try {
-      // Payment integration point: create a Stripe PaymentIntent here (or
-      // server-side on order creation) and confirm it before redirecting.
-      const order = await api<OrderDTO>('/orders', { method: 'POST', body, token });
-      clear();
-      router.push(`/orders/${order.id}`);
+      // Stock is reserved and the order waits for payment on Stripe's page.
+      // The cart is cleared only once payment succeeds (on the order page).
+      const { checkoutUrl } = await api<CheckoutResponse>('/orders', { method: 'POST', body, token });
+      window.location.assign(checkoutUrl);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Something went wrong, please try again.');
       setSubmitting(false);
@@ -59,6 +66,8 @@ function CheckoutForm() {
   }
 
   return (
+    <div className="space-y-6">
+    {notice && <p className="rounded-xl bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">{notice}</p>}
     <form onSubmit={onSubmit} className="grid gap-8 lg:grid-cols-[1fr_320px]">
       <section className="card space-y-4 p-6">
         <h1 className="text-xl font-semibold">Shipping address</h1>
@@ -93,10 +102,17 @@ function CheckoutForm() {
         </div>
         {error && <p className="rounded-lg bg-rose-50 p-3 text-sm text-rose-700">{error}</p>}
         <button className="btn-primary w-full py-3" disabled={submitting}>
-          {submitting ? 'Placing order…' : 'Place order'}
+          {submitting ? 'Taking you to payment…' : `Pay ${formatPrice(cartTotal(items))}`}
         </button>
+        <p className="flex items-center justify-center gap-1.5 text-center text-xs text-stone-500">
+          <svg viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5" aria-hidden>
+            <path fillRule="evenodd" d="M10 1a4.5 4.5 0 0 0-4.5 4.5V9H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-.5V5.5A4.5 4.5 0 0 0 10 1Zm3 8V5.5a3 3 0 1 0-6 0V9h6Z" clipRule="evenodd" />
+          </svg>
+          Secure payment by Stripe. Card, Apple Pay &amp; Google Pay.
+        </p>
       </aside>
     </form>
+    </div>
   );
 }
 

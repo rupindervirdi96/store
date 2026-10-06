@@ -11,6 +11,14 @@ import { useSocketEvent, useSocketStatus } from '@/hooks/useSocketEvent';
 import { api, ApiError } from '@/lib/api';
 import { formatDateTime, formatPrice, shortId } from '@/lib/format';
 import { useAuth } from '@/store/auth';
+import { useCart } from '@/store/cart';
+
+const PAYMENT_LABEL: Record<OrderDTO['paymentStatus'], string> = {
+  Pending: 'Not paid yet',
+  Paid: 'Paid by card',
+  Failed: 'Not paid',
+  Refunded: 'Refunded to your card',
+};
 
 function OrderTracking({ id }: { id: string }) {
   const token = useAuth((s) => s.token);
@@ -33,8 +41,41 @@ function OrderTracking({ id }: { id: string }) {
   // If the socket was offline long enough to miss events, refetch.
   const live = useSocketStatus(load);
 
+  // Back from Stripe after paying: the cart has been bought, so empty it.
+  const clearCart = useCart((s) => s.clear);
+  const [justPaid, setJustPaid] = useState(false);
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('paid') !== '1') return;
+    setJustPaid(true);
+    clearCart();
+    window.history.replaceState(null, '', `/orders/${id}`);
+  }, [id, clearCart]);
+
+  // Stripe's confirmation normally arrives over the socket within seconds;
+  // poll as a fallback while we wait.
+  const awaitingConfirmation = justPaid && order?.status === 'Awaiting Payment';
+  useEffect(() => {
+    if (!awaitingConfirmation) return;
+    const t = setInterval(load, 3000);
+    return () => clearInterval(t);
+  }, [awaitingConfirmation, load]);
+
+  const [paying, setPaying] = useState(false);
+  async function payNow() {
+    setPaying(true);
+    try {
+      const { checkoutUrl } = await api<{ checkoutUrl: string }>(`/orders/${id}/checkout`, { token });
+      window.location.assign(checkoutUrl);
+    } catch (e) {
+      alert(e instanceof ApiError ? e.message : 'Could not open the payment page');
+      setPaying(false);
+      load();
+    }
+  }
+
   async function cancel() {
-    if (!confirm('Cancel this order?')) return;
+    const paid = order?.paymentStatus === 'Paid';
+    if (!confirm(paid ? 'Cancel this order? You will get a full refund.' : 'Cancel this order?')) return;
     setCancelling(true);
     try {
       setOrder(await api<OrderDTO>(`/orders/${id}/cancel`, { method: 'POST', token }));
@@ -68,16 +109,56 @@ function OrderTracking({ id }: { id: string }) {
         </div>
       </div>
 
+      {justPaid && order.paymentStatus === 'Paid' && (
+        <p className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
+          ✓ Payment received — the kitchen has your order. You can follow it live below.
+        </p>
+      )}
+
       <div className="grid gap-6 md:grid-cols-[1fr_1.2fr]">
-        <section className="card p-6">
-          <h2 className="mb-6 font-semibold">Tracking</h2>
-          <OrderTimeline order={order} />
-          {order.status === 'Pending' && (
-            <button className="btn-secondary mt-8 text-rose-600" onClick={cancel} disabled={cancelling}>
-              {cancelling ? 'Cancelling…' : 'Cancel order'}
-            </button>
-          )}
-        </section>
+        {order.status === 'Awaiting Payment' ? (
+          <section className="card flex flex-col items-start gap-4 p-6">
+            {awaitingConfirmation ? (
+              <>
+                <span className="h-8 w-8 animate-spin rounded-full border-[3px] border-brand-600 border-t-transparent" />
+                <div>
+                  <h2 className="text-lg font-semibold">Confirming your payment…</h2>
+                  <p className="text-sm text-stone-500">This usually takes a few seconds. You can keep this page open.</p>
+                </div>
+              </>
+            ) : (
+              <>
+                <div>
+                  <h2 className="text-lg font-semibold">Waiting for payment</h2>
+                  <p className="text-sm text-stone-500">
+                    Your items are reserved
+                    {order.paymentExpiresAt &&
+                      ` until ${new Date(order.paymentExpiresAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`}
+                    . The kitchen starts once payment is complete.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button className="btn-primary" onClick={payNow} disabled={paying}>
+                    {paying ? 'Opening…' : `Pay ${formatPrice(order.totalAmount)}`}
+                  </button>
+                  <button className="btn-secondary text-rose-600" onClick={cancel} disabled={cancelling}>
+                    {cancelling ? 'Cancelling…' : 'Cancel order'}
+                  </button>
+                </div>
+              </>
+            )}
+          </section>
+        ) : (
+          <section className="card p-6">
+            <h2 className="mb-6 font-semibold">Tracking</h2>
+            <OrderTimeline order={order} />
+            {order.status === 'Pending' && (
+              <button className="btn-secondary mt-8 text-rose-600" onClick={cancel} disabled={cancelling}>
+                {cancelling ? 'Cancelling…' : order.paymentStatus === 'Paid' ? 'Cancel & refund' : 'Cancel order'}
+              </button>
+            )}
+          </section>
+        )}
 
         <section className="card space-y-4 p-6">
           <h2 className="font-semibold">Items</h2>
@@ -103,7 +184,7 @@ function OrderTracking({ id }: { id: string }) {
               {order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.postalCode}
             </p>
           </div>
-          <p className="text-sm text-stone-500">Payment: {order.paymentStatus}</p>
+          <p className="text-sm text-stone-500">Payment: {PAYMENT_LABEL[order.paymentStatus]}</p>
         </section>
       </div>
     </div>

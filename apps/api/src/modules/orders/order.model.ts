@@ -40,6 +40,15 @@ const OrderSchema = new Schema(
     status: { type: String, enum: ORDER_STATUSES, default: 'Pending' },
     statusHistory: { type: [StatusEventSchema], default: [] },
     paymentStatus: { type: String, enum: PAYMENT_STATUSES, default: 'Pending' },
+    // Stripe Checkout bookkeeping. Never exposed to clients except the expiry.
+    payment: {
+      checkoutSessionId: { type: String },
+      checkoutUrl: { type: String },
+      checkoutExpiresAt: { type: Date },
+      paymentIntentId: { type: String },
+      amountReceived: { type: Number }, // minor units (cents)
+      refundId: { type: String },
+    },
   },
   { timestamps: true },
 );
@@ -48,6 +57,9 @@ const OrderSchema = new Schema(
 OrderSchema.index({ customer: 1, createdAt: -1 });
 // Admin operations board: filter by status, newest first.
 OrderSchema.index({ status: 1, createdAt: -1 });
+// Webhook / refund lookups.
+OrderSchema.index({ 'payment.checkoutSessionId': 1 }, { sparse: true });
+OrderSchema.index({ 'payment.paymentIntentId': 1 }, { sparse: true });
 
 export type Order = InferSchemaType<typeof OrderSchema>;
 export type OrderDocument = HydratedDocument<Order>;
@@ -90,6 +102,8 @@ export function toOrderDTO(o: OrderDocument): OrderDTO {
       note: e.note ?? undefined,
     })),
     paymentStatus: o.paymentStatus,
+    ...(o.status === 'Awaiting Payment' &&
+      o.payment?.checkoutExpiresAt && { paymentExpiresAt: o.payment.checkoutExpiresAt.toISOString() }),
     createdAt: o.createdAt.toISOString(),
     updatedAt: o.updatedAt.toISOString(),
   };

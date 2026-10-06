@@ -16,6 +16,7 @@ const ACTIVE_COLUMNS: OrderStatus[] = ['Pending', 'Confirmed', 'Preparing', 'Out
 const DONE_COLUMN_LIMIT = 15;
 
 const COLUMN_ACCENT: Record<OrderStatus, string> = {
+  'Awaiting Payment': 'border-t-stone-300',
   Pending: 'border-t-amber-400',
   Confirmed: 'border-t-sky-400',
   Preparing: 'border-t-indigo-400',
@@ -74,7 +75,14 @@ export default function OperationsBoard() {
   const live = useSocketStatus(() => void load());
 
   async function move(order: OrderDTO, status: OrderStatus) {
-    if (status === 'Cancelled' && !confirm(`Cancel order ${shortId(order.id)}? Stock will be returned.`)) return;
+    if (
+      status === 'Cancelled' &&
+      !confirm(
+        `Cancel order ${shortId(order.id)}? Stock will be returned` +
+          (order.paymentStatus === 'Paid' ? ` and ${formatPrice(order.totalAmount)} refunded to the customer's card.` : '.'),
+      )
+    )
+      return;
     setPending((s) => new Set(s).add(order.id));
     try {
       // The server echoes the change via `order:updated` to every admin

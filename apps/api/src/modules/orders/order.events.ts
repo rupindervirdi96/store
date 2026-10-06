@@ -7,6 +7,7 @@ function customerIdOf(order: OrderDTO): string {
 }
 
 const PUSH_COPY: Partial<Record<OrderDTO['status'], string>> = {
+  Pending: "Payment received — we've got your order!",
   Confirmed: 'Your order has been confirmed.',
   Preparing: 'Your order is being prepared.',
   'Out for Delivery': 'Your order is out for delivery!',
@@ -24,12 +25,12 @@ export function broadcastOrderCreated(order: OrderDTO): void {
  * the owning customer in a single emit (Socket.io de-duplicates sockets that
  * are in both rooms), then fire a push notification for backgrounded apps.
  */
-export function broadcastOrderUpdated(order: OrderDTO): void {
+export function broadcastOrderUpdated(order: OrderDTO, opts: { notify?: boolean } = {}): void {
   getIO()
     .to([rooms.admins, rooms.user(customerIdOf(order))])
     .emit(SOCKET_EVENTS.ORDER_UPDATED, order);
 
-  const body = PUSH_COPY[order.status];
+  const body = opts.notify === false ? undefined : PUSH_COPY[order.status];
   if (body) {
     // Fire-and-forget: a push failure must never fail the status update.
     void sendPushToUser(customerIdOf(order), {

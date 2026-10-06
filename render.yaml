@@ -19,3 +19,11 @@ services:
         value: 7d
       - key: CORS_ORIGINS
         sync: false
+      # Stripe (Dashboard → Developers → API keys / Webhooks)
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      # Storefront URL customers return to after paying
+      - key: WEB_URL
+        sync: false

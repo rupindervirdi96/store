@@ -9,6 +9,7 @@ export const CreateOrderSchema = z.object({
     .min(1)
     .max(50),
   shippingAddress: AddressInput,
+  returnTo: z.enum(['web', 'app']).default('web'),
 });
 
 export const UpdateStatusSchema = z.object({

@@ -1,6 +1,6 @@
-import type { OrderStatus } from '@store/shared';
+import { CURRENCY, type OrderStatus } from '@store/shared';
 
-const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+const currency = new Intl.NumberFormat('en-CA', { style: 'currency', currency: CURRENCY });
 
 export const formatPrice = (n: number) => currency.format(n);
 
@@ -10,6 +10,7 @@ export const formatDateTime = (iso: string) =>
 export const shortId = (id: string) => `#${id.slice(-6).toUpperCase()}`;
 
 export const STATUS_STYLES: Record<OrderStatus, string> = {
+  'Awaiting Payment': 'bg-stone-200 text-stone-700',
   Pending: 'bg-amber-100 text-amber-800',
   Confirmed: 'bg-sky-100 text-sky-800',
   Preparing: 'bg-indigo-100 text-indigo-800',

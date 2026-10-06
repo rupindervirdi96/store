@@ -2,6 +2,7 @@ import { createServer } from 'node:http';
 import { env } from './config/env';
 import { connectDatabase, disconnectDatabase } from './config/db';
 import { createApp } from './app';
+import { startPaymentSweeper, stopPaymentSweeper } from './modules/payments/payments.service';
 import { closeSocket, initSocket } from './realtime/socket';
 
 async function main() {
@@ -10,6 +11,7 @@ async function main() {
   const app = createApp();
   const httpServer = createServer(app);
   initSocket(httpServer);
+  startPaymentSweeper();
 
   // Bind 0.0.0.0 so Render's router can reach the process.
   httpServer.listen(env.PORT, '0.0.0.0', () => {
@@ -24,6 +26,7 @@ async function main() {
     console.log(`[api] ${signal} received, shutting down`);
     const force = setTimeout(() => process.exit(1), 10_000).unref();
     try {
+      stopPaymentSweeper();
       await closeSocket(); // also closes the http server
       await disconnectDatabase();
       clearTimeout(force);

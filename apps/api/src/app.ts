@@ -6,6 +6,7 @@ import mongoose from 'mongoose';
 import morgan from 'morgan';
 import { env, isProd } from './config/env';
 import { errorHandler, notFoundHandler } from './middleware/error';
+import { stripeWebhook } from './modules/payments/payments.routes';
 import { apiRouter } from './routes';
 
 export function createApp() {
@@ -30,6 +31,9 @@ export function createApp() {
       maxAge: 86_400,
     }),
   );
+  // Stripe webhooks need the untouched body to verify the signature, so this
+  // route is registered before the JSON parser.
+  app.post('/api/v1/payments/webhook', express.raw({ type: 'application/json', limit: '1mb' }), stripeWebhook);
   app.use(express.json({ limit: '100kb' }));
   app.use(morgan(isProd ? 'combined' : 'dev'));
 

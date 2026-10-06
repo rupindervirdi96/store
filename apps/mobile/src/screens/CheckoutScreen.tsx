@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View } from 'react-native';
-import type { Address, CreateOrderInput, OrderDTO } from '@store/shared';
+import * as WebBrowser from 'expo-web-browser';
+import type { Address, CheckoutResponse, CreateOrderInput, OrderDTO } from '@store/shared';
 import { Button } from '../components/Button';
 import { api, ApiError } from '../lib/api';
 import { formatPrice } from '../lib/format';
@@ -29,6 +30,16 @@ export function CheckoutScreen({ navigation }: RootScreenProps<'Checkout'>) {
 
   const missing = FIELDS.filter((f) => f.required && !address[f.key]?.trim());
 
+  async function waitForPayment(orderId: string): Promise<OrderDTO | null> {
+    let latest: OrderDTO | null = null;
+    for (let i = 0; i < 4; i++) {
+      latest = await api<OrderDTO>(`/orders/${orderId}`, { token }).catch(() => latest);
+      if (latest && latest.status !== 'Awaiting Payment') break;
+      await new Promise((r) => setTimeout(r, 1500));
+    }
+    return latest;
+  }
+
   async function placeOrder() {
     if (missing.length) {
       setError(`Please fill in: ${missing.map((m) => m.label).join(', ')}`);
@@ -41,12 +52,17 @@ export function CheckoutScreen({ navigation }: RootScreenProps<'Checkout'>) {
       shippingAddress: Object.fromEntries(
         Object.entries(address).map(([k, v]) => [k, v?.trim() || undefined]),
       ) as unknown as Address,
+      returnTo: 'app',
     };
     try {
-      const order = await api<OrderDTO>('/orders', { method: 'POST', body, token });
-      // Cart is only cleared once the server has accepted the order; on a
-      // network failure it stays intact (and persisted) for a retry.
-      clear();
+      const { order, checkoutUrl } = await api<CheckoutResponse>('/orders', { method: 'POST', body, token });
+      // Stripe's secure page opens in an in-app browser; this resolves when it's closed.
+      await WebBrowser.openBrowserAsync(checkoutUrl, { dismissButtonStyle: 'done' });
+
+      // Stripe's confirmation usually lands within a few seconds of paying.
+      const latest = await waitForPayment(order.id);
+      // The cart is only cleared once payment is confirmed; otherwise it stays for a retry.
+      if (latest?.paymentStatus === 'Paid') clear();
       navigation.reset({
         index: 1,
         routes: [{ name: 'Tabs', params: { screen: 'Orders' } }, { name: 'OrderTracking', params: { id: order.id } }],
@@ -90,7 +106,8 @@ export function CheckoutScreen({ navigation }: RootScreenProps<'Checkout'>) {
         </View>
 
         {error && <Text style={ui.error}>{error}</Text>}
-        <Button title="Place order" onPress={placeOrder} loading={submitting} disabled={items.length === 0} />
+        <Button title={`Pay ${formatPrice(cartTotal(items))}`} onPress={placeOrder} loading={submitting} disabled={items.length === 0} />
+        <Text style={[ui.muted, { textAlign: 'center' }]}>Secure payment by Stripe — card, Apple Pay or Google Pay.</Text>
       </ScrollView>
     </KeyboardAvoidingView>
   );
