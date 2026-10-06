@@ -1,3 +1,5 @@
+import type { MediaUploadDTO } from '@store/shared';
+
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
 export class ApiError extends Error {
@@ -42,6 +44,28 @@ export async function api<T>(path: string, opts: RequestOptions = {}): Promise<T
     throw new ApiError(res.status, data?.error?.message ?? res.statusText, data?.error?.details);
   }
   return data as T;
+}
+
+export const MAX_UPLOAD_MB = 10;
+
+/** Uploads an image (admin only). The server resizes and converts it to WebP. */
+export async function uploadImage(file: File, token: string | null): Promise<MediaUploadDTO> {
+  const body = new FormData();
+  body.append('file', file);
+  const res = await fetch(`${API_URL}/api/v1/media`, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new ApiError(res.status, data?.error?.message ?? 'Upload failed');
+  return data as MediaUploadDTO;
+}
+
+/** Tells the storefront to drop cached pages after an admin change. Best-effort. */
+export function refreshStorefront(token: string | null): void {
+  if (!token) return;
+  void fetch('/api/revalidate', { method: 'POST', headers: { Authorization: `Bearer ${token}` } }).catch(() => undefined);
 }
 
 /**

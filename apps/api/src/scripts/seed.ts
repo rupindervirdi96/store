@@ -1,18 +1,54 @@
 /**
- * Builds indexes, creates (or promotes) the admin account and inserts any menu
- * items that don't exist yet (matched by title). Safe to run repeatedly.
+ * Builds indexes, creates (or promotes) the admin account, sets up menu
+ * categories and inserts any menu items that don't exist yet (matched by
+ * title). Photos are uploaded into MongoDB like any admin upload. Safe to run
+ * repeatedly.
  *
  *   npm run seed
  *   npm run seed -- --replace-menu   # also archive active products not in MENU
+ *
+ * Also migrates products/orders still pointing at the old web-bundled
+ * "/images/menu/<name>.jpg" paths to uploaded images.
  */
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
 import { connectDatabase, disconnectDatabase } from '../config/db';
 import { hashPassword } from '../modules/auth/auth.service';
+import { CategoryModel } from '../modules/categories/category.model';
+import { MediaModel } from '../modules/media/media.model';
+import { storeImage } from '../modules/media/media.service';
 import { OrderModel } from '../modules/orders/order.model';
 import { ProductModel } from '../modules/products/product.model';
 import { UserModel } from '../modules/users/user.model';
 
-// Images live in apps/web/public/images/menu (see CREDITS.json there).
-const img = (name: string) => [`/images/menu/${name}.jpg`];
+// Photos in apps/api/seed-assets/menu (credits in seed-assets/CREDITS.json).
+const ASSETS_DIR = path.resolve(__dirname, '../../seed-assets/menu');
+const LEGACY_PREFIX = '/images/menu/';
+const img = (name: string) => [`${LEGACY_PREFIX}${name}.jpg`];
+
+const CATEGORIES = [
+  { name: 'burgers', photo: 'classic-cheeseburger' },
+  { name: 'sides', photo: 'fries' },
+  { name: 'drinks', photo: 'chocolate-milkshake' },
+  { name: 'desserts', photo: 'brownie' },
+];
+
+/** Uploads each seed photo at most once per run. */
+const uploaded = new Map<string, string>();
+async function uploadAsset(name: string): Promise<string> {
+  const cached = uploaded.get(name);
+  if (cached) return cached;
+  const buffer = await readFile(path.join(ASSETS_DIR, `${name}.jpg`));
+  const { ref } = await storeImage({ buffer, originalname: `${name}.jpg` });
+  uploaded.set(name, ref);
+  return ref;
+}
+
+/** "/images/menu/fries.jpg" → uploaded ref; anything else is left alone. */
+async function migrateRef(ref: string): Promise<string> {
+  if (!ref.startsWith(LEGACY_PREFIX)) return ref;
+  return uploadAsset(path.basename(ref, '.jpg'));
+}
 
 const MENU = [
   // Burgers
@@ -76,21 +112,58 @@ async function main() {
     console.warn('[seed] SEED_ADMIN_PASSWORD not set; skipping admin creation');
   }
 
+  await Promise.all([CategoryModel.syncIndexes(), MediaModel.syncIndexes()]);
+
+  // ── Menu items ──────────────────────────────────────────────
   const titles = MENU.map((m) => m.title);
   const present = new Set((await ProductModel.find({ title: { $in: titles } }, { title: 1 }).lean()).map((p) => p.title));
   const missing = MENU.filter((m) => !present.has(m.title));
-  if (missing.length) {
-    await ProductModel.insertMany(missing);
-    console.log(`[seed] inserted ${missing.length} menu items`);
-  } else {
-    console.log('[seed] menu already present');
+  for (const item of missing) {
+    await ProductModel.create({ ...item, images: await Promise.all(item.images.map(migrateRef)) });
   }
+  console.log(missing.length ? `[seed] inserted ${missing.length} menu items` : '[seed] menu already present');
 
   if (replaceMenu) {
     // Archive (not delete): past orders still reference these products.
     const res = await ProductModel.updateMany({ title: { $nin: titles }, isActive: true }, { isActive: false });
     console.log(`[seed] archived ${res.modifiedCount} products not on the menu`);
   }
+
+  // ── Migrate legacy web-bundled image paths to uploads ───────
+  let migratedProducts = 0;
+  for (const p of await ProductModel.find({ images: { $regex: `^${LEGACY_PREFIX}` } })) {
+    p.images = await Promise.all(p.images.map(migrateRef));
+    await p.save();
+    migratedProducts++;
+  }
+  let migratedOrders = 0;
+  for (const o of await OrderModel.find({ 'items.image': { $regex: `^${LEGACY_PREFIX}` } })) {
+    for (const item of o.items) if (item.image) item.image = await migrateRef(item.image);
+    await o.save();
+    migratedOrders++;
+  }
+  if (migratedProducts || migratedOrders) {
+    console.log(`[seed] moved photos into the database for ${migratedProducts} products, ${migratedOrders} orders`);
+  }
+
+  // ── Categories ──────────────────────────────────────────────
+  let order = (await CategoryModel.findOne().sort({ sortOrder: -1 }).lean())?.sortOrder ?? -1;
+  for (const c of CATEGORIES) {
+    const existingCat = await CategoryModel.findOne({ name: c.name });
+    if (!existingCat) {
+      await CategoryModel.create({ name: c.name, image: await uploadAsset(c.photo), sortOrder: ++order });
+      console.log(`[seed] created category "${c.name}"`);
+    } else if (!existingCat.image) {
+      existingCat.image = await uploadAsset(c.photo);
+      await existingCat.save();
+    }
+  }
+  // Any other category used by products gets a (photo-less) entry so admins can manage it.
+  for (const name of await ProductModel.distinct('category', { isActive: true })) {
+    if (!(await CategoryModel.exists({ name }))) await CategoryModel.create({ name, sortOrder: ++order });
+  }
+
+  console.log(`[seed] uploaded ${uploaded.size} photos`);
 
   await disconnectDatabase();
 }

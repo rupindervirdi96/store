@@ -9,7 +9,7 @@ const price = z
   });
 
 // Absolute URL, or a site-relative path to an asset bundled with the web app.
-const imageRef = z.union([
+export const imageRef = z.union([
   z.url({ protocol: /^https?$/ }),
   z.string().regex(/^\/(?!\/)[\w\-./]+$/, 'Must be an http(s) URL or a /path'),
 ]);

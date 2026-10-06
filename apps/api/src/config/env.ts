@@ -17,6 +17,10 @@ const EnvSchema = z.object({
   // Optional: Google reviews on the home page (Places API (New)).
   GOOGLE_PLACES_API_KEY: optionalString,
   GOOGLE_PLACE_ID: optionalString,
+  // Public base URL of this API, used to build image links. Render sets
+  // RENDER_EXTERNAL_URL automatically; locally it falls back to localhost.
+  PUBLIC_URL: optionalString,
+  RENDER_EXTERNAL_URL: optionalString,
   CORS_ORIGINS: z
     .string()
     .default('http://localhost:3000')
@@ -38,5 +42,12 @@ if (!parsed.success) {
   process.exit(1);
 }
 
-export const env = parsed.data;
+export const env = {
+  ...parsed.data,
+  PUBLIC_URL: (
+    parsed.data.PUBLIC_URL ??
+    parsed.data.RENDER_EXTERNAL_URL ??
+    `http://localhost:${parsed.data.PORT}`
+  ).replace(/\/+$/, ''),
+};
 export const isProd = env.NODE_ENV === 'production';

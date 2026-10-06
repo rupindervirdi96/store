@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { authRouter } from './modules/auth/auth.routes';
+import { categoryRouter } from './modules/categories/category.routes';
+import { mediaRouter } from './modules/media/media.routes';
 import { orderRouter } from './modules/orders/order.routes';
 import { productRouter } from './modules/products/product.routes';
 import { reviewsRouter } from './modules/reviews/reviews.routes';
@@ -12,3 +14,5 @@ apiRouter.use('/users', userRouter);
 apiRouter.use('/products', productRouter);
 apiRouter.use('/orders', orderRouter);
 apiRouter.use('/reviews', reviewsRouter);
+apiRouter.use('/categories', categoryRouter);
+apiRouter.use('/media', mediaRouter);

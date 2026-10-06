@@ -100,6 +100,14 @@ Design decisions:
 | GET | `/orders?status&page&limit` | admin | All orders (operations board) |
 | PATCH | `/orders/:id/status` | admin | `{ status, note? }`; must be a valid transition |
 | PATCH | `/orders/:id/payment` | admin | `{ paymentStatus }` |
+| GET | `/categories` | public | Visible categories in menu order (photo, item count). Admins can add `includeInactive=true` |
+| POST | `/categories` | admin | `{ name, image? }` |
+| PATCH | `/categories/:id` | admin | Rename (moves its items along), photo, visibility |
+| PUT | `/categories/order` | admin | `{ ids: [...] }` sets the menu order |
+| DELETE | `/categories/:id` | admin | Only when no visible items use it |
+| POST | `/media` | admin | Multipart `file` (≤10 MB). Resized to ≤1600px WebP and stored in MongoDB → `{ url }` |
+| GET | `/media/:id` | public | Serves an uploaded image (cached for a year, embeddable cross-origin) |
+| GET | `/reviews` | public | Google reviews via Places API (when `GOOGLE_PLACES_API_KEY`/`GOOGLE_PLACE_ID` are set) |
 | GET | `/health` | public | Render health check (includes DB state) |
 
 Errors always use the shape `{ error: { message, details? } }`, with status codes 400 (validation), 401, 403, 404, 409 (stock or transition conflict) and 429.

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import type { Paginated, ProductDTO } from '@store/shared';
+import type { CategoryDTO, Paginated, ProductDTO } from '@store/shared';
 import { ProductCard } from '@/components/ProductCard';
 import { api } from '@/lib/api';
 
@@ -21,14 +21,18 @@ export default async function ShopPage({ searchParams }: { searchParams: SearchP
 
   const [products, categories] = await Promise.all([
     api<Paginated<ProductDTO>>(`/products?${qs}`, { next: { revalidate: 30 } }),
-    api<string[]>('/products/categories', { next: { revalidate: 300 } }),
+    api<CategoryDTO[]>('/categories', { next: { revalidate: 60 } }),
   ]);
 
   // Filter chips: switching category or deals resets search + pagination.
   const chips = [
     { label: 'All', href: '/shop', active: !category && !deals },
     { label: '🔥 Deals', href: '/shop?onSale=true', active: deals },
-    ...categories.map((c) => ({ label: c, href: `/shop?category=${encodeURIComponent(c)}`, active: c === category })),
+    ...categories.map((c) => ({
+      label: c.name,
+      href: `/shop?category=${encodeURIComponent(c.name)}`,
+      active: c.name === category,
+    })),
   ];
 
   const heading = deals ? "Today's deals" : category ? category : 'Our menu';

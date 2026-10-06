@@ -1,5 +1,6 @@
 import { Schema, model, Types, type HydratedDocument, type InferSchemaType } from 'mongoose';
 import { ORDER_STATUSES, PAYMENT_STATUSES, type OrderDTO } from '@store/shared';
+import { resolveImage } from '../media/media.service';
 import { AddressSchema } from '../users/user.model';
 
 /**
@@ -67,7 +68,7 @@ export function toOrderDTO(o: OrderDocument): OrderDTO {
     items: o.items.map((i) => ({
       product: i.product.toString(),
       title: i.title,
-      image: i.image ?? undefined,
+      image: resolveImage(i.image),
       price: i.price,
       quantity: i.quantity,
     })),

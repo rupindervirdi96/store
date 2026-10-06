@@ -31,15 +31,8 @@ export const store = {
     instagram: 'https://instagram.com/',
     facebook: 'https://facebook.com/',
   },
-
-  /** Image shown for each category tile (falls back to the first product image). */
-  categoryImages: {
-    burgers: '/images/menu/classic-cheeseburger.jpg',
-    sides: '/images/menu/fries.jpg',
-    drinks: '/images/menu/chocolate-milkshake.jpg',
-    desserts: '/images/menu/brownie.jpg',
-  } as Record<string, string>,
 };
+// Menu categories (names, photos, order) are managed in Admin → Categories.
 
 export const fullAddress = `${store.address.line1}, ${store.address.city}, ${store.address.region} ${store.address.postalCode}`;
 export const directionsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`;

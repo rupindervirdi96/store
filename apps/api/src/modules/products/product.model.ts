@@ -1,5 +1,6 @@
 import { Schema, model, type HydratedDocument, type InferSchemaType } from 'mongoose';
 import type { ProductDTO } from '@store/shared';
+import { resolveImage } from '../media/media.service';
 
 const ProductSchema = new Schema(
   {
@@ -44,7 +45,7 @@ export function toProductDTO(p: ProductDocument): ProductDTO {
     category: p.category,
     stockQuantity: p.stockQuantity,
     soldCount: p.soldCount ?? 0,
-    images: p.images,
+    images: p.images.map((ref) => resolveImage(ref)),
     isActive: p.isActive,
     createdAt: p.createdAt.toISOString(),
     updatedAt: p.updatedAt.toISOString(),

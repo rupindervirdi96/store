@@ -1,5 +1,6 @@
 import type { ErrorRequestHandler, RequestHandler } from 'express';
 import mongoose from 'mongoose';
+import { MulterError } from 'multer';
 import { ZodError, z } from 'zod';
 import { isProd } from '../config/env';
 import { AppError } from '../utils/AppError';
@@ -33,6 +34,9 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
     status = 409;
     const fields = Object.keys((err as { keyValue?: object }).keyValue ?? {});
     message = `Duplicate value for ${fields.join(', ') || 'unique field'}`;
+  } else if (err instanceof MulterError) {
+    status = err.code === 'LIMIT_FILE_SIZE' ? 413 : 400;
+    message = err.code === 'LIMIT_FILE_SIZE' ? 'Image is too large (max 10 MB)' : err.message;
   } else if ((err as { type?: string })?.type === 'entity.parse.failed') {
     status = 400;
     message = 'Malformed JSON body';

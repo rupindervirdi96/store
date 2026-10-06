@@ -1,8 +1,11 @@
 import Link from 'next/link';
+import type { CategoryDTO } from '@store/shared';
+import { tryApi } from '@/lib/api';
 import { directionsUrl, fullAddress, store, telHref } from '@/config/store';
 import { Logo } from './Logo';
 
-export function Footer() {
+export async function Footer() {
+  const categories = await tryApi<CategoryDTO[]>('/categories', { next: { revalidate: 300 } });
   return (
     <footer className="mt-auto bg-ink text-stone-300">
       <div className="container-page grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-4">
@@ -14,10 +17,10 @@ export function Footer() {
         <div>
           <h3 className="mb-4 text-sm font-semibold text-white">Menu</h3>
           <ul className="space-y-2 text-sm">
-            {Object.keys(store.categoryImages).map((c) => (
-              <li key={c}>
-                <Link href={`/shop?category=${c}`} className="capitalize hover:text-white">
-                  {c}
+            {(categories ?? []).map((c) => (
+              <li key={c.id}>
+                <Link href={`/shop?category=${encodeURIComponent(c.name)}`} className="capitalize hover:text-white">
+                  {c.name}
                 </Link>
               </li>
             ))}

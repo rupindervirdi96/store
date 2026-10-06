@@ -1,6 +1,9 @@
 import type { FilterQuery, SortOrder } from 'mongoose';
 import type { Paginated, ProductDTO } from '@store/shared';
 import { AppError } from '../../utils/AppError';
+import { CategoryModel } from '../categories/category.model';
+import { ensureExists as ensureCategory } from '../categories/category.service';
+import { deleteIfUnreferenced, normalizeImageRef } from '../media/media.service';
 import { broadcastStockChanged } from '../orders/order.events';
 import { ProductModel, toProductDTO, type Product } from './product.model';
 import type {
@@ -42,9 +45,16 @@ export async function list(
   };
 }
 
+/** Category names with active products, in the admin-defined menu order. */
 export async function categories(): Promise<string[]> {
-  const cats = await ProductModel.distinct('category', { isActive: true });
-  return cats.sort();
+  const [names, ordered] = await Promise.all([
+    ProductModel.distinct('category', { isActive: true }),
+    CategoryModel.find({}, { name: 1, sortOrder: 1, isActive: 1 }).lean(),
+  ]);
+  const meta = new Map(ordered.map((c) => [c.name, c]));
+  return names
+    .filter((n) => meta.get(n)?.isActive !== false)
+    .sort((a, b) => (meta.get(a)?.sortOrder ?? 1e9) - (meta.get(b)?.sortOrder ?? 1e9) || a.localeCompare(b));
 }
 
 export async function getById(id: string, opts: { allowInactive: boolean }): Promise<ProductDTO> {
@@ -54,19 +64,27 @@ export async function getById(id: string, opts: { allowInactive: boolean }): Pro
 }
 
 export async function create(input: CreateProductInput): Promise<ProductDTO> {
-  return toProductDTO(await ProductModel.create(input));
+  await ensureCategory(input.category);
+  return toProductDTO(await ProductModel.create({ ...input, images: input.images.map(normalizeImageRef) }));
 }
 
 export async function update(id: string, input: UpdateProductInput): Promise<ProductDTO> {
   const doc = await ProductModel.findById(id);
   if (!doc) throw AppError.notFound('Product not found');
-  doc.set(input);
+  const previousImages = [...doc.images];
+
+  doc.set({ ...input, ...(input.images && { images: input.images.map(normalizeImageRef) }) });
   // Re-check against the merged document: either field may have changed.
   if (doc.compareAtPrice != null && doc.compareAtPrice <= doc.price) {
     throw AppError.badRequest('Original price must be higher than the sale price');
   }
+  if (doc.isActive) await ensureCategory(doc.category);
   await doc.save();
+
   if (input.stockQuantity !== undefined) broadcastStockChanged(doc.id, doc.stockQuantity);
+  // Clean up photos the admin removed (kept if anything else still uses them).
+  const removed = previousImages.filter((ref) => !doc.images.includes(ref));
+  if (removed.length) await deleteIfUnreferenced(removed);
   return toProductDTO(doc);
 }
 

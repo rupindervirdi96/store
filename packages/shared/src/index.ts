@@ -90,6 +90,25 @@ export interface ProductDTO {
   updatedAt: string;
 }
 
+export interface CategoryDTO {
+  id: string;
+  name: string;
+  image: string | null;
+  sortOrder: number;
+  isActive: boolean;
+  /** Public listing: active products. Admin listing: all products. */
+  productCount: number;
+}
+
+export interface MediaUploadDTO {
+  id: string;
+  /** Absolute URL to display the image. Send it back as-is in product/category images. */
+  url: string;
+  width: number;
+  height: number;
+  size: number;
+}
+
 export interface GoogleReviewDTO {
   authorName: string;
   authorUri?: string;

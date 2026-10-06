@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import type { Paginated, ProductDTO, ReviewsDTO } from '@store/shared';
+import type { CategoryDTO, Paginated, ProductDTO, ReviewsDTO } from '@store/shared';
 import { ProductCard } from '@/components/ProductCard';
 import { ReviewsSection } from '@/components/ReviewsSection';
 import { SectionHeading } from '@/components/SectionHeading';
@@ -41,15 +41,13 @@ export default async function HomePage() {
   const [offers, popular, categories, reviews] = await Promise.all([
     tryApi<Paginated<ProductDTO>>('/products?onSale=true&limit=4&sort=price_asc', { next: { revalidate: 60 } }),
     tryApi<Paginated<ProductDTO>>('/products?sort=popular&limit=8', { next: { revalidate: 60 } }),
-    tryApi<string[]>('/products/categories', { next: { revalidate: 300 } }),
+    tryApi<CategoryDTO[]>('/categories', { next: { revalidate: 60 } }),
     tryApi<ReviewsDTO>('/reviews', { next: { revalidate: 3600 } }),
   ]);
 
   const google = reviews?.configured ? reviews : null;
-  // Menu order from the store config first (burgers, sides, …), then anything else.
-  const order = Object.keys(store.categoryImages);
-  const rank = (c: string) => (order.includes(c) ? order.indexOf(c) : order.length);
-  const sortedCategories = [...(categories ?? [])].sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
+  // Already in the admin-defined order.
+  const tiles = (categories ?? []).slice(0, 8);
   // "Popular" only means something once orders exist; before that it's just the menu.
   const hasSales = popular?.data.some((p) => p.soldCount > 0) ?? false;
 
@@ -109,26 +107,26 @@ export default async function HomePage() {
       </section>
 
       {/* ── Categories ───────────────────────────────────────── */}
-      {sortedCategories.length > 0 && (
+      {tiles.length > 0 && (
         <section className="container-page -mt-12 relative z-10">
           <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
-            {sortedCategories.map((c) => (
+            {tiles.map((c) => (
               <Link
-                key={c}
-                href={`/shop?category=${encodeURIComponent(c)}`}
+                key={c.id}
+                href={`/shop?category=${encodeURIComponent(c.name)}`}
                 className="group relative flex aspect-[4/3] items-end overflow-hidden rounded-2xl bg-stone-800 shadow-lg"
               >
-                {store.categoryImages[c] && (
+                {c.image && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={store.categoryImages[c]}
+                    src={c.image}
                     alt=""
                     className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-110"
                   />
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/20 to-transparent" />
                 <span className="relative flex w-full items-center justify-between p-4 font-display text-lg font-semibold capitalize text-white">
-                  {c}
+                  {c.name}
                   <span className="translate-x-0 transition group-hover:translate-x-1">→</span>
                 </span>
               </Link>
