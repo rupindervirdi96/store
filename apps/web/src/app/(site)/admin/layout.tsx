@@ -14,7 +14,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <RequireAuth role="admin">
       <div className="space-y-6">
-        <nav className="flex gap-1 border-b border-slate-200">
+        <nav className="flex gap-1 border-b border-stone-200">
           {NAV.map((n) => (
             <Link
               key={n.href}
@@ -22,7 +22,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium ${
                 pathname === n.href
                   ? 'border-brand-600 text-brand-700'
-                  : 'border-transparent text-slate-500 hover:text-slate-800'
+                  : 'border-transparent text-stone-500 hover:text-stone-800'
               }`}
             >
               {n.label}

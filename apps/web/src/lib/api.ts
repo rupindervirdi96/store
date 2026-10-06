@@ -43,3 +43,17 @@ export async function api<T>(path: string, opts: RequestOptions = {}): Promise<T
   }
   return data as T;
 }
+
+/**
+ * For non-critical server-rendered sections: returns null instead of throwing,
+ * so one failing request (or a cold-starting API during a build) can't take
+ * down the whole page.
+ */
+export async function tryApi<T>(path: string, opts: RequestOptions = {}): Promise<T | null> {
+  try {
+    return await api<T>(path, opts);
+  } catch (err) {
+    console.error(`[api] ${path} failed:`, err instanceof Error ? err.message : err);
+    return null;
+  }
+}

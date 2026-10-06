@@ -16,7 +16,7 @@ export function OrderTimeline({ order }: { order: OrderDTO }) {
   const currentIdx = ORDER_PROGRESS.indexOf(order.status);
 
   return (
-    <ol className="relative space-y-6 border-l-2 border-slate-200 pl-6">
+    <ol className="relative space-y-6 border-l-2 border-stone-200 pl-6">
       {ORDER_PROGRESS.map((status, idx) => {
         const done = idx <= currentIdx;
         const current = idx === currentIdx;
@@ -25,11 +25,11 @@ export function OrderTimeline({ order }: { order: OrderDTO }) {
           <li key={status} className="relative">
             <span
               className={`absolute -left-[33px] top-0.5 flex h-4 w-4 items-center justify-center rounded-full ring-4 ring-white ${
-                done ? 'bg-brand-600' : 'bg-slate-300'
+                done ? 'bg-brand-600' : 'bg-stone-300'
               } ${current && status !== 'Delivered' ? 'animate-pulse' : ''}`}
             />
-            <p className={`font-medium ${done ? 'text-slate-900' : 'text-slate-400'}`}>{status}</p>
-            {at && <p className="text-xs text-slate-500">{formatDateTime(at)}</p>}
+            <p className={`font-medium ${done ? 'text-stone-900' : 'text-stone-400'}`}>{status}</p>
+            {at && <p className="text-xs text-stone-500">{formatDateTime(at)}</p>}
           </li>
         );
       })}

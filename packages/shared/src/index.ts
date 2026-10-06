@@ -77,13 +77,40 @@ export interface ProductDTO {
   title: string;
   description: string;
   price: number;
+  /** Original price when the product is on special offer (always > price). */
+  compareAtPrice: number | null;
   category: string;
   stockQuantity: number;
+  /** Units sold across non-cancelled orders; drives "most popular". */
+  soldCount: number;
+  /** Absolute URLs, or site-relative paths ("/images/...") served by the web app. */
   images: string[];
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
+
+export interface GoogleReviewDTO {
+  authorName: string;
+  authorUri?: string;
+  authorPhotoUri?: string;
+  rating: number;
+  text: string;
+  relativeTime: string;
+  publishTime?: string;
+}
+
+export type ReviewsDTO =
+  | { configured: false }
+  | {
+      configured: true;
+      placeName: string;
+      rating: number | null;
+      totalReviews: number;
+      mapsUri?: string;
+      writeReviewUri: string;
+      reviews: GoogleReviewDTO[];
+    };
 
 export interface OrderItemDTO {
   product: string;

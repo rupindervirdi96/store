@@ -55,7 +55,7 @@ function CheckoutForm() {
   }
 
   if (items.length === 0) {
-    return <p className="py-24 text-center text-slate-500">Your cart is empty.</p>;
+    return <p className="py-24 text-center text-stone-500">Your cart is empty.</p>;
   }
 
   return (
@@ -65,7 +65,7 @@ function CheckoutForm() {
         <div className="grid gap-4 sm:grid-cols-2">
           {FIELDS.map((f) => (
             <label key={f.name} className={`space-y-1 text-sm ${f.span ? 'sm:col-span-2' : ''}`}>
-              <span className="text-slate-600">
+              <span className="text-stone-600">
                 {f.label}
                 {f.required && ' *'}
               </span>
@@ -80,14 +80,14 @@ function CheckoutForm() {
         <ul className="space-y-2 text-sm">
           {items.map((i) => (
             <li key={i.productId} className="flex justify-between gap-2">
-              <span className="text-slate-600">
+              <span className="text-stone-600">
                 {i.quantity} × {i.title}
               </span>
               <span className="tabular-nums">{formatPrice(i.price * i.quantity)}</span>
             </li>
           ))}
         </ul>
-        <div className="flex justify-between border-t border-slate-100 pt-4 text-lg font-semibold">
+        <div className="flex justify-between border-t border-stone-100 pt-4 text-lg font-semibold">
           <span>Total</span>
           <span>{formatPrice(cartTotal(items))}</span>
         </div>

@@ -1,4 +1,9 @@
 export const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:4000';
+/** The web storefront, which hosts menu images referenced as "/images/...". */
+export const ASSET_URL = process.env.EXPO_PUBLIC_ASSET_URL ?? 'http://localhost:3000';
+
+/** Resolves a product image (absolute URL or site-relative path) to a loadable URI. */
+export const imageUri = (src?: string) => (src && src.startsWith('/') ? `${ASSET_URL}${src}` : src);
 
 export class ApiError extends Error {
   constructor(

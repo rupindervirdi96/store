@@ -46,22 +46,22 @@ function OrderTracking({ id }: { id: string }) {
   }
 
   if (error) return <p className="text-rose-600">{error}</p>;
-  if (!order) return <p className="text-slate-500">Loading…</p>;
+  if (!order) return <p className="text-stone-500">Loading…</p>;
 
   return (
     <div className="space-y-6">
-      <Link href="/orders" className="text-sm text-slate-500 hover:text-slate-800">
+      <Link href="/orders" className="text-sm text-stone-500 hover:text-stone-800">
         ← All orders
       </Link>
 
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">Order {shortId(order.id)}</h1>
-          <p className="text-sm text-slate-500">Placed {formatDateTime(order.createdAt)}</p>
+          <p className="text-sm text-stone-500">Placed {formatDateTime(order.createdAt)}</p>
         </div>
         <div className="flex items-center gap-3">
-          <span className="flex items-center gap-1.5 text-xs text-slate-500">
-            <span className={`h-2 w-2 rounded-full ${live ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+          <span className="flex items-center gap-1.5 text-xs text-stone-500">
+            <span className={`h-2 w-2 rounded-full ${live ? 'bg-emerald-500' : 'bg-stone-300'}`} />
             {live ? 'Live' : 'Reconnecting…'}
           </span>
           <StatusBadge status={order.status} />
@@ -91,19 +91,19 @@ function OrderTracking({ id }: { id: string }) {
               </li>
             ))}
           </ul>
-          <div className="flex justify-between border-t border-slate-100 pt-3 font-semibold">
+          <div className="flex justify-between border-t border-stone-100 pt-3 font-semibold">
             <span>Total</span>
             <span>{formatPrice(order.totalAmount)}</span>
           </div>
-          <div className="text-sm text-slate-600">
-            <p className="font-medium text-slate-900">Delivering to</p>
+          <div className="text-sm text-stone-600">
+            <p className="font-medium text-stone-900">Delivering to</p>
             <p>{order.shippingAddress.line1}</p>
             {order.shippingAddress.line2 && <p>{order.shippingAddress.line2}</p>}
             <p>
               {order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.postalCode}
             </p>
           </div>
-          <p className="text-sm text-slate-500">Payment: {order.paymentStatus}</p>
+          <p className="text-sm text-stone-500">Payment: {order.paymentStatus}</p>
         </section>
       </div>
     </div>

@@ -3,8 +3,8 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { ProductDTO } from '@store/shared';
 import { AddToCartButton } from '@/components/AddToCartButton';
+import { discountPercent, Price } from '@/components/Price';
 import { api, ApiError } from '@/lib/api';
-import { formatPrice } from '@/lib/format';
 
 type Params = Promise<{ id: string }>;
 
@@ -29,39 +29,47 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 export default async function ProductPage({ params }: { params: Params }) {
   const product = await getProduct((await params).id);
   const lowStock = product.stockQuantity > 0 && product.stockQuantity <= 5;
+  const off = discountPercent(product.price, product.compareAtPrice);
 
   return (
     <div className="space-y-6">
-      <Link href="/" className="text-sm text-slate-500 hover:text-slate-800">
-        ← Back to shop
+      <Link href="/shop" className="text-sm font-medium text-stone-500 hover:text-stone-800">
+        ← Back to menu
       </Link>
-      <div className="grid gap-10 md:grid-cols-2">
-        <div className="card aspect-square overflow-hidden bg-slate-100">
+      <div className="grid gap-10 md:grid-cols-2 md:items-center">
+        <div className="relative aspect-[4/3] overflow-hidden rounded-3xl bg-stone-100 shadow-lg">
           {product.images[0] ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={product.images[0]} alt={product.title} className="h-full w-full object-cover" />
           ) : (
-            <div className="flex h-full items-center justify-center text-7xl text-slate-300">🛍️</div>
+            <div className="flex h-full items-center justify-center text-7xl">🍔</div>
+          )}
+          {off > 0 && (
+            <span className="absolute left-4 top-4 rounded-full bg-rose-600 px-3 py-1.5 text-sm font-bold text-white shadow">
+              Save {off}%
+            </span>
           )}
         </div>
-        <div className="flex flex-col gap-4">
-          <Link
-            href={`/?category=${encodeURIComponent(product.category)}`}
-            className="text-sm uppercase tracking-wide text-brand-700"
-          >
+
+        <div className="flex flex-col gap-5">
+          <Link href={`/shop?category=${encodeURIComponent(product.category)}`} className="eyebrow hover:text-brand-900">
             {product.category}
           </Link>
-          <h1 className="text-3xl font-semibold tracking-tight">{product.title}</h1>
-          <p className="text-2xl font-semibold">{formatPrice(product.price)}</p>
-          <p className="whitespace-pre-line leading-relaxed text-slate-600">{product.description}</p>
-          <p className={`text-sm ${product.stockQuantity === 0 ? 'text-rose-600' : lowStock ? 'text-amber-600' : 'text-emerald-600'}`}>
+          <h1 className="text-4xl font-bold sm:text-5xl">{product.title}</h1>
+          <Price price={product.price} compareAtPrice={product.compareAtPrice} size="lg" />
+          <p className="whitespace-pre-line text-lg leading-relaxed text-stone-600">{product.description}</p>
+          <p
+            className={`text-sm font-medium ${
+              product.stockQuantity === 0 ? 'text-rose-600' : lowStock ? 'text-amber-600' : 'text-emerald-600'
+            }`}
+          >
             {product.stockQuantity === 0
-              ? 'Out of stock'
+              ? 'Sold out for today'
               : lowStock
-                ? `Only ${product.stockQuantity} left`
-                : 'In stock'}
+                ? `Only ${product.stockQuantity} left today`
+                : '● Available now'}
           </p>
-          <div className="mt-4 max-w-sm">
+          <div className="mt-2 max-w-sm">
             <AddToCartButton product={product} />
           </div>
         </div>

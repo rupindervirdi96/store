@@ -3,8 +3,8 @@ import { ActivityIndicator, Image, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { ProductDTO } from '@store/shared';
 import { Button } from '../components/Button';
-import { api } from '../lib/api';
-import { formatPrice } from '../lib/format';
+import { PriceText } from '../components/PriceText';
+import { api, imageUri } from '../lib/api';
 import type { RootScreenProps } from '../navigation/types';
 import { useCart } from '../store/cart';
 import { colors, ui } from '../theme';
@@ -31,9 +31,9 @@ export function ProductDetailScreen({ route, navigation }: RootScreenProps<'Prod
   return (
     <SafeAreaView style={ui.screen} edges={['bottom']}>
       <ScrollView>
-        <View style={{ aspectRatio: 1, backgroundColor: '#f1f5f9', alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{ aspectRatio: 4 / 3, backgroundColor: '#f5f5f4', alignItems: 'center', justifyContent: 'center' }}>
           {product.images[0] ? (
-            <Image source={{ uri: product.images[0] }} style={{ width: '100%', height: '100%' }} />
+            <Image source={{ uri: imageUri(product.images[0]) }} style={{ width: '100%', height: '100%' }} />
           ) : (
             <Text style={{ fontSize: 72 }}>🛍️</Text>
           )}
@@ -41,7 +41,7 @@ export function ProductDetailScreen({ route, navigation }: RootScreenProps<'Prod
         <View style={{ padding: 16, gap: 10 }}>
           <Text style={[ui.muted, { textTransform: 'uppercase' }]}>{product.category}</Text>
           <Text style={ui.h1}>{product.title}</Text>
-          <Text style={[ui.h2, { fontSize: 22 }]}>{formatPrice(product.price)}</Text>
+          <PriceText price={product.price} compareAtPrice={product.compareAtPrice} size={22} />
           <Text style={[ui.body, { lineHeight: 22, color: '#334155' }]}>{product.description}</Text>
           <Text style={{ color: soldOut ? colors.danger : product.stockQuantity <= 5 ? '#d97706' : colors.success }}>
             {soldOut ? 'Out of stock' : product.stockQuantity <= 5 ? `Only ${product.stockQuantity} left` : 'In stock'}

@@ -25,7 +25,7 @@ export function RequireAuth({ role, children }: { role?: Role; children: ReactNo
   }, [hydrated, user, allowed, router, pathname]);
 
   if (!hydrated || !allowed) {
-    return <div className="py-24 text-center text-sm text-slate-500">Loading…</div>;
+    return <div className="py-24 text-center text-sm text-stone-500">Loading…</div>;
   }
   return <>{children}</>;
 }

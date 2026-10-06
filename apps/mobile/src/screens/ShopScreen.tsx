@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import type { Paginated, ProductDTO } from '@store/shared';
-import { api } from '../lib/api';
-import { formatPrice } from '../lib/format';
+import { PriceText } from '../components/PriceText';
+import { api, imageUri } from '../lib/api';
 import type { TabScreenProps } from '../navigation/types';
 import { colors, ui } from '../theme';
 
@@ -115,7 +115,7 @@ export function ShopScreen({ navigation }: TabScreenProps<'Shop'>) {
           >
             <View style={styles.imageWrap}>
               {item.images[0] ? (
-                <Image source={{ uri: item.images[0] }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+                <Image source={{ uri: imageUri(item.images[0]) }} style={StyleSheet.absoluteFill} resizeMode="cover" />
               ) : (
                 <Text style={{ fontSize: 36 }}>🛍️</Text>
               )}
@@ -125,7 +125,7 @@ export function ShopScreen({ navigation }: TabScreenProps<'Shop'>) {
               <Text style={[ui.body, { fontWeight: '500' }]} numberOfLines={2}>
                 {item.title}
               </Text>
-              <Text style={[ui.body, { fontWeight: '700' }]}>{formatPrice(item.price)}</Text>
+              <PriceText price={item.price} compareAtPrice={item.compareAtPrice} />
               {item.stockQuantity === 0 && <Text style={[ui.muted, { color: colors.danger }]}>Sold out</Text>}
             </View>
           </Pressable>

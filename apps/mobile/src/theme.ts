@@ -1,9 +1,9 @@
 import { StyleSheet } from 'react-native';
 
 export const colors = {
-  brand: '#1f57d0',
-  brandDark: '#1a46a8',
-  bg: '#f8fafc',
+  brand: '#ea580c',
+  brandDark: '#c2410c',
+  bg: '#fffaf5',
   card: '#ffffff',
   border: '#e2e8f0',
   text: '#0f172a',

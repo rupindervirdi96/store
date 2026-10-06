@@ -8,8 +8,12 @@ const ProductSchema = new Schema(
     // Stored in major units with 2dp precision enforced by validation.
     // Switch to integer minor units (cents) if you add multi-currency.
     price: { type: Number, required: true, min: 0 },
+    // Set when on special offer; the service guarantees compareAtPrice > price.
+    compareAtPrice: { type: Number, min: 0, default: null },
     category: { type: String, required: true, trim: true, lowercase: true },
     stockQuantity: { type: Number, required: true, min: 0, default: 0 },
+    // Maintained transactionally by the order service.
+    soldCount: { type: Number, min: 0, default: 0 },
     images: { type: [String], default: [] },
     isActive: { type: Boolean, default: true },
   },
@@ -20,6 +24,10 @@ const ProductSchema = new Schema(
 ProductSchema.index({ isActive: 1, category: 1, createdAt: -1 });
 // Price sorting within active catalog.
 ProductSchema.index({ isActive: 1, price: 1 });
+// "Most popular" listing.
+ProductSchema.index({ isActive: 1, soldCount: -1 });
+// Special offers.
+ProductSchema.index({ isActive: 1, compareAtPrice: 1 });
 // Keyword search on title/description.
 ProductSchema.index({ title: 'text', description: 'text' }, { weights: { title: 5, description: 1 } });
 
@@ -32,8 +40,10 @@ export function toProductDTO(p: ProductDocument): ProductDTO {
     title: p.title,
     description: p.description,
     price: p.price,
+    compareAtPrice: p.compareAtPrice ?? null,
     category: p.category,
     stockQuantity: p.stockQuantity,
+    soldCount: p.soldCount ?? 0,
     images: p.images,
     isActive: p.isActive,
     createdAt: p.createdAt.toISOString(),

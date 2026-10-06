@@ -106,24 +106,24 @@ export default function OperationsBoard() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Live operations</h1>
-        <span className="flex items-center gap-2 text-sm text-slate-500">
-          <span className={`h-2.5 w-2.5 rounded-full ${live ? 'animate-pulse bg-emerald-500' : 'bg-slate-300'}`} />
+        <span className="flex items-center gap-2 text-sm text-stone-500">
+          <span className={`h-2.5 w-2.5 rounded-full ${live ? 'animate-pulse bg-emerald-500' : 'bg-stone-300'}`} />
           {live ? 'Live' : 'Connecting…'}
         </span>
       </div>
 
       {loading ? (
-        <p className="text-slate-500">Loading orders…</p>
+        <p className="text-stone-500">Loading orders…</p>
       ) : (
         <div className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-4">
           {columns.map(({ status, orders: col }) => (
             <section
               key={status}
-              className={`flex w-72 shrink-0 flex-col rounded-xl border-t-4 bg-slate-100 ${COLUMN_ACCENT[status]}`}
+              className={`flex w-72 shrink-0 flex-col rounded-xl border-t-4 bg-stone-100 ${COLUMN_ACCENT[status]}`}
             >
               <header className="flex items-center justify-between px-3 py-2">
                 <h2 className="text-sm font-semibold">{status}</h2>
-                <span className="rounded-full bg-white px-2 text-xs font-medium text-slate-600">{col.length}</span>
+                <span className="rounded-full bg-white px-2 text-xs font-medium text-stone-600">{col.length}</span>
               </header>
               <div className="flex flex-col gap-2 p-2">
                 {col.map((o) => (
@@ -135,12 +135,12 @@ export default function OperationsBoard() {
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-semibold">{shortId(o.id)}</span>
-                      <span className="text-xs text-slate-500">{minutesAgo(o.createdAt)}</span>
+                      <span className="text-xs text-stone-500">{minutesAgo(o.createdAt)}</span>
                     </div>
-                    <p className="text-slate-600">
+                    <p className="text-stone-600">
                       {typeof o.customer === 'string' ? 'Customer' : o.customer.name}
                     </p>
-                    <ul className="text-xs text-slate-500">
+                    <ul className="text-xs text-stone-500">
                       {o.items.map((i) => (
                         <li key={i.product}>
                           {i.quantity} × {i.title}
@@ -149,7 +149,7 @@ export default function OperationsBoard() {
                     </ul>
                     <div className="flex items-center justify-between">
                       <span className="font-medium">{formatPrice(o.totalAmount)}</span>
-                      <span className="text-xs text-slate-500">{o.paymentStatus}</span>
+                      <span className="text-xs text-stone-500">{o.paymentStatus}</span>
                     </div>
                     {ORDER_STATUS_TRANSITIONS[o.status].length > 0 && (
                       <div className="flex flex-wrap gap-1.5 pt-1">
@@ -171,7 +171,7 @@ export default function OperationsBoard() {
                     )}
                   </article>
                 ))}
-                {col.length === 0 && <p className="py-6 text-center text-xs text-slate-400">No orders</p>}
+                {col.length === 0 && <p className="py-6 text-center text-xs text-stone-400">No orders</p>}
               </div>
             </section>
           ))}

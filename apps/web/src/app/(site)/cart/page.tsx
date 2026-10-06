@@ -14,9 +14,9 @@ export default function CartPage() {
   if (items.length === 0) {
     return (
       <div className="py-24 text-center">
-        <p className="mb-4 text-slate-500">Your cart is empty.</p>
-        <Link href="/" className="btn-primary">
-          Browse products
+        <p className="mb-4 text-stone-500">Your cart is empty.</p>
+        <Link href="/shop" className="btn-primary">
+          Browse the menu
         </Link>
       </div>
     );
@@ -24,10 +24,10 @@ export default function CartPage() {
 
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
-      <section className="card divide-y divide-slate-100">
+      <section className="card divide-y divide-stone-100">
         {items.map((i) => (
           <div key={i.productId} className="flex items-center gap-4 p-4">
-            <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-slate-100">
+            <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-stone-100">
               {i.image && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={i.image} alt="" className="h-full w-full object-cover" />
@@ -37,7 +37,7 @@ export default function CartPage() {
               <Link href={`/products/${i.productId}`} className="font-medium hover:text-brand-700">
                 {i.title}
               </Link>
-              <p className="text-sm text-slate-500">{formatPrice(i.price)}</p>
+              <p className="text-sm text-stone-500">{formatPrice(i.price)}</p>
             </div>
             <div className="flex items-center gap-1">
               <button className="btn-secondary px-2.5 py-1" onClick={() => setQuantity(i.productId, i.quantity - 1)} aria-label="Decrease">
@@ -54,7 +54,7 @@ export default function CartPage() {
               </button>
             </div>
             <p className="w-20 text-right font-medium tabular-nums">{formatPrice(i.price * i.quantity)}</p>
-            <button className="text-sm text-slate-400 hover:text-rose-600" onClick={() => remove(i.productId)}>
+            <button className="text-sm text-stone-400 hover:text-rose-600" onClick={() => remove(i.productId)}>
               Remove
             </button>
           </div>
@@ -66,7 +66,7 @@ export default function CartPage() {
           <span>Subtotal</span>
           <span>{formatPrice(cartTotal(items))}</span>
         </div>
-        <p className="text-xs text-slate-500">Final prices and stock are confirmed at checkout.</p>
+        <p className="text-xs text-stone-500">Final prices and stock are confirmed at checkout.</p>
         <Link href="/checkout" className="btn-primary w-full py-3">
           Checkout
         </Link>

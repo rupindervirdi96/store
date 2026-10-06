@@ -44,16 +44,16 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
         <h1 className="text-xl font-semibold">{mode === 'login' ? 'Sign in' : 'Create account'}</h1>
         {mode === 'register' && (
           <label className="block space-y-1 text-sm">
-            <span className="text-slate-600">Name</span>
+            <span className="text-stone-600">Name</span>
             <input name="name" required autoComplete="name" className="input" />
           </label>
         )}
         <label className="block space-y-1 text-sm">
-          <span className="text-slate-600">Email</span>
+          <span className="text-stone-600">Email</span>
           <input name="email" type="email" required autoComplete="email" className="input" />
         </label>
         <label className="block space-y-1 text-sm">
-          <span className="text-slate-600">Password</span>
+          <span className="text-stone-600">Password</span>
           <input
             name="password"
             type="password"
@@ -67,7 +67,7 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
         <button className="btn-primary w-full py-2.5" disabled={submitting}>
           {submitting ? 'Please wait…' : mode === 'login' ? 'Sign in' : 'Create account'}
         </button>
-        <p className="text-center text-sm text-slate-500">
+        <p className="text-center text-sm text-stone-500">
           {mode === 'login' ? 'New here? ' : 'Already have an account? '}
           <Link href={otherHref} className="font-medium text-brand-700 hover:underline">
             {mode === 'login' ? 'Create an account' : 'Sign in'}

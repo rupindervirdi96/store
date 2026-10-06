@@ -29,13 +29,13 @@ function OrdersList() {
   );
 
   if (error) return <p className="text-rose-600">{error}</p>;
-  if (!orders) return <p className="text-slate-500">Loading…</p>;
+  if (!orders) return <p className="text-stone-500">Loading…</p>;
   if (orders.length === 0) {
     return (
       <div className="py-24 text-center">
-        <p className="mb-4 text-slate-500">You haven&apos;t placed any orders yet.</p>
-        <Link href="/" className="btn-primary">
-          Start shopping
+        <p className="mb-4 text-stone-500">You haven&apos;t placed any orders yet.</p>
+        <Link href="/shop" className="btn-primary">
+          Browse the menu
         </Link>
       </div>
     );
@@ -44,13 +44,13 @@ function OrdersList() {
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-semibold">Your orders</h1>
-      <ul className="card divide-y divide-slate-100">
+      <ul className="card divide-y divide-stone-100">
         {orders.map((o) => (
           <li key={o.id}>
-            <Link href={`/orders/${o.id}`} className="flex items-center justify-between gap-4 p-4 hover:bg-slate-50">
+            <Link href={`/orders/${o.id}`} className="flex items-center justify-between gap-4 p-4 hover:bg-stone-50">
               <div>
                 <p className="font-medium">{shortId(o.id)}</p>
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-stone-500">
                   {formatDateTime(o.createdAt)} · {o.items.reduce((n, i) => n + i.quantity, 0)} items
                 </p>
               </div>

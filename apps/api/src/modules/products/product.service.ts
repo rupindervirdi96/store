@@ -14,6 +14,7 @@ const SORTS: Record<ListProductsInput['sort'], Record<string, SortOrder>> = {
   newest: { createdAt: -1 },
   price_asc: { price: 1 },
   price_desc: { price: -1 },
+  popular: { soldCount: -1, createdAt: -1 },
 };
 
 export async function list(
@@ -23,6 +24,7 @@ export async function list(
   const filter: FilterQuery<Product> = {};
   if (!(opts.allowInactive && input.includeInactive)) filter.isActive = true;
   if (input.category) filter.category = input.category;
+  if (input.onSale) filter.compareAtPrice = { $ne: null };
   if (input.q) filter.$text = { $search: input.q };
 
   const skip = (input.page - 1) * input.limit;
@@ -56,8 +58,14 @@ export async function create(input: CreateProductInput): Promise<ProductDTO> {
 }
 
 export async function update(id: string, input: UpdateProductInput): Promise<ProductDTO> {
-  const doc = await ProductModel.findByIdAndUpdate(id, input, { new: true, runValidators: true });
+  const doc = await ProductModel.findById(id);
   if (!doc) throw AppError.notFound('Product not found');
+  doc.set(input);
+  // Re-check against the merged document: either field may have changed.
+  if (doc.compareAtPrice != null && doc.compareAtPrice <= doc.price) {
+    throw AppError.badRequest('Original price must be higher than the sale price');
+  }
+  await doc.save();
   if (input.stockQuantity !== undefined) broadcastStockChanged(doc.id, doc.stockQuantity);
   return toProductDTO(doc);
 }

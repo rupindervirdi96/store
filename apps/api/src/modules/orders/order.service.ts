@@ -33,7 +33,7 @@ export async function createOrder(customerId: string, input: CreateOrderInput): 
     for (const [productId, quantity] of qtyByProduct) {
       const product = await ProductModel.findOneAndUpdate(
         { _id: productId, isActive: true, stockQuantity: { $gte: quantity } },
-        { $inc: { stockQuantity: -quantity } },
+        { $inc: { stockQuantity: -quantity, soldCount: quantity } },
         { new: true, session },
       );
       if (!product) {
@@ -86,7 +86,7 @@ async function restock(order: OrderDocument, session: ClientSession) {
   for (const item of order.items) {
     const p = await ProductModel.findByIdAndUpdate(
       item.product,
-      { $inc: { stockQuantity: item.quantity } },
+      { $inc: { stockQuantity: item.quantity, soldCount: -item.quantity } },
       { new: true, session },
     );
     if (p) changes.push({ id: p.id, stockQuantity: p.stockQuantity });

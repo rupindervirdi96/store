@@ -1,0 +1,92 @@
+{
+  "menu/classic-cheeseburger": {
+    "photographer": "amirali mirhashemian",
+    "profile": "https://unsplash.com/@amir_v_ali",
+    "photo": "https://unsplash.com/photos/sc5sTPMrVfk"
+  },
+  "menu/double-smash-burger": {
+    "photographer": "Anto Meneghini",
+    "profile": "https://unsplash.com/@antomeneghini",
+    "photo": "https://unsplash.com/photos/wlehgn1YeZ8"
+  },
+  "menu/bacon-bbq-burger": {
+    "photographer": "amirali mirhashemian",
+    "profile": "https://unsplash.com/@amir_v_ali",
+    "photo": "https://unsplash.com/photos/88YAXjnpvrM"
+  },
+  "menu/crispy-chicken-burger": {
+    "photographer": "Hybrid Storytellers",
+    "profile": "https://unsplash.com/@hybridstorytellers",
+    "photo": "https://unsplash.com/photos/8JklXjB2X3w"
+  },
+  "menu/veggie-burger": {
+    "photographer": "Lefteris kallergis",
+    "profile": "https://unsplash.com/@lefterisk",
+    "photo": "https://unsplash.com/photos/_TLKIVSW6Do"
+  },
+  "menu/fries": {
+    "photographer": "Mitchell Luo",
+    "profile": "https://unsplash.com/@mitchel3uo",
+    "photo": "https://unsplash.com/photos/ChXHveqrb28"
+  },
+  "menu/onion-rings": {
+    "photographer": "Farhad Ibrahimzade",
+    "profile": "https://unsplash.com/@ferhadd",
+    "photo": "https://unsplash.com/photos/HU_ubYnwElc"
+  },
+  "menu/chicken-wings": {
+    "photographer": "Corey Watson",
+    "profile": "https://unsplash.com/@cowiijay",
+    "photo": "https://unsplash.com/photos/g6KQZywJUo0"
+  },
+  "menu/loaded-fries": {
+    "photographer": "Michael Kahn",
+    "profile": "https://unsplash.com/@mklibrary",
+    "photo": "https://unsplash.com/photos/VPLQUtiQPV8"
+  },
+  "menu/chocolate-milkshake": {
+    "photographer": "Yi Mun Loo",
+    "profile": "https://unsplash.com/@yimoooon",
+    "photo": "https://unsplash.com/photos/X3VbbKNDMSo"
+  },
+  "menu/strawberry-milkshake": {
+    "photographer": "Sebastian Coman Photography",
+    "profile": "https://unsplash.com/@sebastiancoman",
+    "photo": "https://unsplash.com/photos/rwBJaJdesGg"
+  },
+  "menu/lemonade": {
+    "photographer": "Francesca Hotchin",
+    "profile": "https://unsplash.com/@franhotchin",
+    "photo": "https://unsplash.com/photos/p5EiqkBYIEE"
+  },
+  "menu/iced-coffee": {
+    "photographer": "Demi DeHerrera",
+    "profile": "https://unsplash.com/@demidearest",
+    "photo": "https://unsplash.com/photos/L-sm1B4L1Ns"
+  },
+  "menu/brownie": {
+    "photographer": "Shivansh Sethi",
+    "profile": "https://unsplash.com/@kaaficlever",
+    "photo": "https://unsplash.com/photos/dKT6Q7q2UKs"
+  },
+  "menu/cheesecake": {
+    "photographer": "Tina Guina",
+    "profile": "https://unsplash.com/@kittinskie",
+    "photo": "https://unsplash.com/photos/s8_7AqkzCWY"
+  },
+  "menu/ice-cream-sundae": {
+    "photographer": "Molly Keesling",
+    "profile": "https://unsplash.com/@mollysuek",
+    "photo": "https://unsplash.com/photos/7YhrOw6Kngo"
+  },
+  "hero": {
+    "photographer": "Jonathan Borba",
+    "profile": "https://unsplash.com/@jonathanborba",
+    "photo": "https://unsplash.com/photos/8l8Yl2ruUsg"
+  },
+  "restaurant": {
+    "photographer": "Priscilla Du Preez 🇨🇦",
+    "profile": "https://unsplash.com/@priscilladupreez",
+    "photo": "https://unsplash.com/photos/wPgIiL4DDug"
+  }
+}
