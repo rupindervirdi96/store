@@ -1,6 +1,9 @@
 import type { MediaUploadDTO } from '@store/shared';
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+// The demo deployment sets NEXT_PUBLIC_DEMO_API_URL (scoped to the `demo` branch in
+// Vercel) so it can point at the demo API without touching the production variable.
+export const API_URL =
+  process.env.NEXT_PUBLIC_DEMO_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
 export class ApiError extends Error {
   constructor(
