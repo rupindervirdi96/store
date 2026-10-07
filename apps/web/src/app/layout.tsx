@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter, Poppins } from 'next/font/google';
+import { DemoChrome } from '@/components/demo/DemoChrome';
 import { Footer } from '@/components/Footer';
 import { Header } from '@/components/Header';
 import { store } from '@/config/store';
@@ -26,6 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${inter.variable} ${poppins.variable}`}>
       <body className="flex min-h-screen flex-col">
+        <DemoChrome />
         <Header />
         <div className="flex-1">{children}</div>
         <Footer />

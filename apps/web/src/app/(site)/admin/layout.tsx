@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { DemoAdminHint } from '@/components/demo/DemoHints';
 import { RequireAuth } from '@/components/RequireAuth';
 
 const NAV = [
@@ -33,6 +34,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </Link>
           ))}
         </nav>
+        <DemoAdminHint />
         {children}
       </div>
     </RequireAuth>

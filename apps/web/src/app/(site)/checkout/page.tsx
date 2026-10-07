@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from 'react';
 import type { Address, CheckoutResponse, CreateOrderInput } from '@store/shared';
+import { DemoCardHint } from '@/components/demo/DemoHints';
 import { RequireAuth } from '@/components/RequireAuth';
 import { api, ApiError } from '@/lib/api';
 import { formatPrice } from '@/lib/format';
@@ -101,6 +102,7 @@ function CheckoutForm() {
           <span>{formatPrice(cartTotal(items))}</span>
         </div>
         {error && <p className="rounded-lg bg-rose-50 p-3 text-sm text-rose-700">{error}</p>}
+        <DemoCardHint />
         <button className="btn-primary w-full py-3" disabled={submitting}>
           {submitting ? 'Taking you to payment…' : `Pay ${formatPrice(cartTotal(items))}`}
         </button>

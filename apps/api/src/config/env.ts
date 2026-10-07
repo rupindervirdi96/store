@@ -26,6 +26,11 @@ const EnvSchema = z.object({
   STRIPE_WEBHOOK_SECRET: optionalString,
   // Test-only: point the SDK at stripe-mock, e.g. http://localhost:12111
   STRIPE_API_BASE: optionalString,
+  // Public demo/showcase mode: publishes demo logins and enables a reset. Use a separate database!
+  DEMO_MODE: z
+    .enum(['true', 'false', ''])
+    .optional()
+    .transform((v) => v === 'true'),
   // Storefront URL Stripe returns customers to. Defaults to the first non-local CORS origin.
   WEB_URL: optionalString,
   CORS_ORIGINS: z

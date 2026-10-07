@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import { ApiError } from '@/lib/api';
 import { useAuth } from '@/store/auth';
+import { DemoLoginHint } from './demo/DemoHints';
 
 export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
   const router = useRouter();
@@ -39,7 +40,8 @@ export function AuthForm({ mode }: { mode: 'login' | 'register' }) {
   const otherHref = next ? `${other}?next=${encodeURIComponent(next)}` : other;
 
   return (
-    <div className="mx-auto max-w-sm py-12">
+    <div className="mx-auto max-w-sm space-y-4 py-12">
+      <DemoLoginHint next={next} />
       <form onSubmit={onSubmit} className="card space-y-4 p-6">
         <h1 className="text-xl font-semibold">{mode === 'login' ? 'Sign in' : 'Create account'}</h1>
         {mode === 'register' && (

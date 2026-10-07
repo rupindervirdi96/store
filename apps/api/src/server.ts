@@ -2,11 +2,13 @@ import { createServer } from 'node:http';
 import { env } from './config/env';
 import { connectDatabase, disconnectDatabase } from './config/db';
 import { createApp } from './app';
+import { prepareDemo } from './modules/demo/demo.service';
 import { startPaymentSweeper, stopPaymentSweeper } from './modules/payments/payments.service';
 import { closeSocket, initSocket } from './realtime/socket';
 
 async function main() {
   await connectDatabase();
+  await prepareDemo();
 
   const app = createApp();
   const httpServer = createServer(app);

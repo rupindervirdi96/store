@@ -118,6 +118,14 @@ export interface MediaUploadDTO {
   size: number;
 }
 
+/** GET /demo — only exists when the API runs in demo mode. */
+export interface DemoInfoDTO {
+  enabled: true;
+  accounts: { role: Role; email: string; password: string }[];
+  testCards: { label: string; number: string }[];
+  cardHint: string;
+}
+
 export interface GoogleReviewDTO {
   authorName: string;
   authorUri?: string;

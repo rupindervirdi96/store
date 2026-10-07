@@ -177,6 +177,17 @@ Render generates `JWT_SECRET` automatically. Run `npm run seed` once against pro
 - **Web → Vercel or Render.** Use root directory `apps/web` and set `NEXT_PUBLIC_API_URL`. The build command must build shared first: `cd ../.. && npm run build:web`.
 - **Mobile → EAS.** Run `eas init` to fill `extra.eas.projectId`, upload FCM V1 credentials (`eas credentials`), and build with `eas build`. Remote push needs a development or production build; it doesn't work in Expo Go.
 
+## Demo mode (`demo` branch)
+
+A showcase version for clients. It runs as a **separate** API with its own database, so the published demo logins never touch real data.
+
+- Demo mode is on when the API has `DEMO_MODE=true`. The website shows the demo banner, guide and hints only when the API reports demo mode (`GET /api/v1/demo`), so the API setting is the only switch.
+- On startup, a demo API creates the demo logins and, if its database is empty, the starter menu.
+  - Customer: `customer@demo.example.com` / `demo1234`
+  - Admin: `admin@demo.example.com` / `demo1234`
+- **Reset demo data** (admin area or guide) deletes all orders and sign-ups and restores the menu.
+- Payments use Stripe **test** keys; the guide shows the test cards.
+
 ## 7. Production hardening checklist
 
 These are deliberately left as next steps:
