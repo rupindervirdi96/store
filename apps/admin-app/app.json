@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "Ember & Bun Kitchen",
+    "slug": "store-kitchen",
+    "scheme": "storekitchen",
+    "version": "0.1.0",
+    "orientation": "default",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "bundleIdentifier": "com.example.storekitchen",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Take photos of menu items.",
+        "NSPhotoLibraryUsageDescription": "Choose photos for menu items."
+      }
+    },
+    "android": {
+      "package": "com.example.storekitchen",
+      "permissions": ["CAMERA", "VIBRATE"]
+    },
+    "plugins": [
+      "expo-secure-store",
+      ["expo-notifications", { "color": "#ea580c" }],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Choose photos for menu items.",
+          "cameraPermission": "Take photos of menu items."
+        }
+      ]
+    ],
+    "web": { "bundler": "metro" },
+    "extra": { "eas": { "projectId": "" } }
+  }
+}

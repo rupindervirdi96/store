@@ -50,16 +50,36 @@ store-app/
     │       ├── store/                    Zustand: cart (localStorage), auth
     │       ├── hooks/useSocketEvent.ts   typed Socket.io subscription hooks
     │       └── lib/                      api client, socket singleton, formatters
-    └── mobile/               @store/mobile: Expo SDK 57 + React Navigation 7
-        ├── App.tsx                 hydration gate + push registration
+    ├── mobile/               @store/mobile: CUSTOMER app (Expo SDK 57 + React Navigation 7)
+    │   ├── App.tsx                 hydration gate + push registration
+    │   └── src/
+    │       ├── navigation/         native stack + bottom tabs, notification deep links
+    │       ├── screens/            Shop, ProductDetail, Cart, Checkout, Orders,
+    │       │                       OrderTracking, Login/Register, Account
+    │       ├── store/              cart → AsyncStorage, auth → SecureStore
+    │       ├── hooks/              useSocketEvent / useSocketStatus
+    │       └── lib/                api, socket, notifications (Expo push → FCM)
+    └── admin-app/            @store/admin-app: RESTAURANT app for tablets/phones (admins only)
+        ├── App.tsx                 hydration gate + new-order push registration
         └── src/
-            ├── navigation/         native stack + bottom tabs, notification deep links
-            ├── screens/            Shop, ProductDetail, Cart, Checkout, Orders,
-            │                       OrderTracking, Login/Register, Account
-            ├── store/              cart → AsyncStorage, auth → SecureStore
-            ├── hooks/              useSocketEvent / useSocketStatus
-            └── lib/                api, socket, notifications (Expo push → FCM)
+            ├── navigation/         tabs (Orders, Menu, Categories, Settings) + order sheet + item editor
+            ├── screens/            OrdersScreen (kanban on tablets, tabs on phones), OrderDetail,
+            │                       Menu, EditItem (camera/gallery photos), Categories, Settings, Login
+            ├── components/         OrderCard, PhotoManager, shared UI
+            ├── store/              auth (admin-only, SecureStore), device settings (AsyncStorage)
+            └── lib/                api + uploads, socket, notifications, dialogs
 ```
+
+### Restaurant app (`apps/admin-app`)
+
+A separate Expo app for the owner's tablet: live order board with new-order alerts (vibration in-app, push when backgrounded), order details and status changes (cancelling a paid order refunds it), menu and stock management with photo uploads from the camera, categories, and device settings (keep screen awake). Only admin accounts can sign in.
+
+```bash
+npm run dev:admin-app        # Expo dev server — scan with Expo Go or a development build
+npm run dev:admin-app:web    # same app in a browser (handy for a quick look)
+```
+
+Set `EXPO_PUBLIC_API_URL` and `EXPO_PUBLIC_WEB_URL` in `apps/admin-app/.env`. New-order push notifications need an EAS build (`eas build`) with `extra.eas.projectId` set; Expo Go doesn't support remote push.
 
 ## 2. Data model
 

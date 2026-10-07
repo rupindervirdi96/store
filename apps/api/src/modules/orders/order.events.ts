@@ -1,6 +1,6 @@
 import { SOCKET_EVENTS, type OrderDTO } from '@store/shared';
 import { getIO, rooms } from '../../realtime/socket';
-import { sendPushToUser } from '../notifications/push.service';
+import { sendPushToAdmins, sendPushToUser } from '../notifications/push.service';
 
 function customerIdOf(order: OrderDTO): string {
   return typeof order.customer === 'string' ? order.customer : order.customer.id;
@@ -18,6 +18,15 @@ const PUSH_COPY: Partial<Record<OrderDTO['status'], string>> = {
 /** New order: only the operations board needs to know. */
 export function broadcastOrderCreated(order: OrderDTO): void {
   getIO().to(rooms.admins).emit(SOCKET_EVENTS.ORDER_CREATED, order);
+
+  // Wake the restaurant tablet if the admin app is in the background.
+  const count = order.items.reduce((n, i) => n + i.quantity, 0);
+  void sendPushToAdmins({
+    title: `New order #${order.id.slice(-6).toUpperCase()}`,
+    body: `${count} item${count === 1 ? '' : 's'} · $${order.totalAmount.toFixed(2)}`,
+    data: { orderId: order.id, type: 'new-order' },
+    channelId: 'new-orders',
+  });
 }
 
 /**
