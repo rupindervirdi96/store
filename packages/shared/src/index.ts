@@ -4,6 +4,14 @@
  * names) lives here so every client stays in lockstep with the backend.
  */
 
+export * from './address';
+
+/** Store name and tagline shown by every client and in emails. */
+export const STORE_BRAND = {
+  name: 'Ember & Bun',
+  tagline: 'Smashed fresh. Delivered hot.',
+} as const;
+
 export const ROLES = ['customer', 'admin'] as const;
 export type Role = (typeof ROLES)[number];
 
@@ -172,6 +180,21 @@ export interface OrderDTO {
 export interface AuthResponse {
   token: string;
   user: UserDTO;
+}
+
+/** Digits in the email verification code sent on sign-up. */
+export const OTP_LENGTH = 6;
+
+/**
+ * POST /auth/register and /auth/register/resend: a code was emailed. The
+ * account is created by POST /auth/register/verify ({ email, code }).
+ */
+export interface VerificationSentResponse {
+  email: string;
+  /** When the emailed code stops working. */
+  expiresAt: string;
+  /** Earliest time a new code can be requested. */
+  resendAvailableAt: string;
 }
 
 export interface Paginated<T> {

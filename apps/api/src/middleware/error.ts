@@ -21,7 +21,8 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
     details = err.details;
   } else if (err instanceof ZodError) {
     status = 400;
-    message = 'Validation failed';
+    // Custom rules (e.g. address checks) carry a message meant for the user.
+    message = err.issues[0]?.code === 'custom' ? err.issues[0].message : 'Validation failed';
     details = z.flattenError(err).fieldErrors;
   } else if (err instanceof mongoose.Error.ValidationError) {
     status = 400;

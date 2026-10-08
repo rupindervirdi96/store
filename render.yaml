@@ -24,6 +24,12 @@ services:
         sync: false
       - key: STRIPE_WEBHOOK_SECRET
         sync: false
+      # Sign-up verification emails: Gmail address + App password
+      # (needs a paid instance; Render's free tier blocks outbound SMTP)
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
       # Storefront URL customers return to after paying
       - key: WEB_URL
         sync: false

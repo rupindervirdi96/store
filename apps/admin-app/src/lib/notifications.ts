@@ -1,20 +1,26 @@
-import Constants from 'expo-constants';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import * as Device from 'expo-device';
-import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { api } from './api';
 
+/**
+ * expo-notifications throws on import in Expo Go on Android (remote push was
+ * removed in SDK 53), so it's only loaded in development/production builds.
+ */
+export const Notifications: typeof import('expo-notifications') | null =
+  Platform.OS === 'web' || Constants.executionEnvironment === ExecutionEnvironment.StoreClient
+    ? null
+    : require('expo-notifications');
+
 // While the app is open the board updates live, so show banners quietly.
-if (Platform.OS !== 'web') {
-  Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldShowBanner: true,
-      shouldShowList: true,
-      shouldPlaySound: true,
-      shouldSetBadge: false,
-    }),
-  });
-}
+Notifications?.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 /**
  * Registers this tablet for "new order" push notifications (sent by the API
@@ -22,7 +28,7 @@ if (Platform.OS !== 'web') {
  * production build with an EAS projectId; not available in Expo Go or on web.
  */
 export async function registerForOrderAlerts(authToken: string): Promise<string | null> {
-  if (Platform.OS === 'web' || !Device.isDevice) return null;
+  if (!Notifications || !Device.isDevice) return null;
 
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('new-orders', {

@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import { STORE_BRAND } from '@store/shared';
 import { z } from 'zod';
 
 // Treats unset and blank (`KEY=`) the same way.
@@ -26,6 +27,19 @@ const EnvSchema = z.object({
   STRIPE_WEBHOOK_SECRET: optionalString,
   // Test-only: point the SDK at stripe-mock, e.g. http://localhost:12111
   STRIPE_API_BASE: optionalString,
+  // Sign-up verification emails. SMTP (e.g. Gmail with an App password) is used
+  // when SMTP_USER/SMTP_PASS are set, otherwise Resend (https://resend.com).
+  // With neither, codes are printed to the console in development and sign-up
+  // fails in production.
+  SMTP_HOST: z.string().trim().default('smtp.gmail.com'),
+  SMTP_PORT: z.coerce.number().int().positive().default(465),
+  SMTP_USER: optionalString,
+  // Gmail: a 16-character App password, not the account password.
+  SMTP_PASS: optionalString,
+  RESEND_API_KEY: optionalString,
+  // Defaults to the SMTP account, or Resend's test sender (onboarding@resend.dev
+  // only delivers to the Resend account's own address).
+  EMAIL_FROM: optionalString,
   // Storefront URL Stripe returns customers to. Defaults to the first non-local CORS origin.
   WEB_URL: optionalString,
   CORS_ORIGINS: z
@@ -51,6 +65,10 @@ if (!parsed.success) {
 
 export const env = {
   ...parsed.data,
+  // Gmail shows App passwords in groups of four ("abcd efgh ijkl mnop"); accept them pasted with spaces.
+  SMTP_PASS: parsed.data.SMTP_PASS?.replace(/\s+/g, ''),
+  EMAIL_FROM:
+    parsed.data.EMAIL_FROM ?? `${STORE_BRAND.name} <${parsed.data.SMTP_USER ?? 'onboarding@resend.dev'}>`,
   PUBLIC_URL: (
     parsed.data.PUBLIC_URL ??
     parsed.data.RENDER_EXTERNAL_URL ??

@@ -30,7 +30,7 @@ store-app/
     │       ├── middleware/         auth.ts (JWT + roles), validate.ts, error.ts
     │       ├── realtime/socket.ts  JWT handshake auth + room assignment
     │       ├── modules/
-    │       │   ├── auth/           register / login (bcrypt)
+    │       │   ├── auth/           register (email code) / login (bcrypt)
     │       │   ├── users/          User model, /users/me, push tokens
     │       │   ├── products/       model · schemas · service · controller · routes
     │       │   ├── orders/         model · schemas · service · controller · routes · events
@@ -101,7 +101,9 @@ Design decisions:
 
 | Method | Path | Access | Purpose |
 |---|---|---|---|
-| POST | `/auth/register` | public (rate-limited) | Create a customer account → `{ token, user }` |
+| POST | `/auth/register` | public (rate-limited) | Emails a 6-digit code (valid 10 min) → `{ email, expiresAt, resendAvailableAt }` |
+| POST | `/auth/register/verify` | public (rate-limited) | `{ email, code }` → creates the customer account → `{ token, user }` |
+| POST | `/auth/register/resend` | public (rate-limited) | New code (60 s cooldown) |
 | POST | `/auth/login` | public (rate-limited) | → `{ token, user }` |
 | GET | `/users/me` | auth | Current profile |
 | PATCH | `/users/me` | auth | Update name and saved addresses |

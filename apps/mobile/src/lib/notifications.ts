@@ -1,11 +1,17 @@
-import Constants from 'expo-constants';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import * as Device from 'expo-device';
-import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { api } from './api';
 
+/**
+ * expo-notifications throws on import in Expo Go on Android (remote push was
+ * removed in SDK 53), so it's only loaded in development/production builds.
+ */
+export const Notifications: typeof import('expo-notifications') | null =
+  Constants.executionEnvironment === ExecutionEnvironment.StoreClient ? null : require('expo-notifications');
+
 // Show banners even when the app is foregrounded (the socket also updates UI).
-Notifications.setNotificationHandler({
+Notifications?.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowBanner: true,
     shouldShowList: true,
@@ -22,7 +28,7 @@ Notifications.setNotificationHandler({
  * Expo Go — plus an EAS projectId and FCM credentials uploaded to EAS.
  */
 export async function registerForPushNotifications(authToken: string): Promise<string | null> {
-  if (!Device.isDevice) return null;
+  if (!Notifications || !Device.isDevice) return null;
 
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('orders', {

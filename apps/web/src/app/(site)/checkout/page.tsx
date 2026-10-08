@@ -1,30 +1,31 @@
 'use client';
 
 import { useEffect, useState, type FormEvent } from 'react';
-import type { Address, CheckoutResponse, CreateOrderInput } from '@store/shared';
+import {
+  DEFAULT_COUNTRY,
+  normalizeAddress,
+  validateAddress,
+  type Address,
+  type CheckoutResponse,
+  type CreateOrderInput,
+} from '@store/shared';
+import { AddressFields, type AddressDraft } from '@/components/AddressFields';
 import { RequireAuth } from '@/components/RequireAuth';
 import { api, ApiError } from '@/lib/api';
 import { formatPrice } from '@/lib/format';
 import { useAuth } from '@/store/auth';
 import { cartTotal, useCart } from '@/store/cart';
 
-const FIELDS: { name: keyof Address; label: string; required?: boolean; span?: boolean }[] = [
-  { name: 'line1', label: 'Address line 1', required: true, span: true },
-  { name: 'line2', label: 'Address line 2', span: true },
-  { name: 'city', label: 'City', required: true },
-  { name: 'state', label: 'State / Province', required: true },
-  { name: 'postalCode', label: 'Postal code', required: true },
-  { name: 'country', label: 'Country', required: true },
-  { name: 'phone', label: 'Phone', span: true },
-];
-
 function CheckoutForm() {
   const token = useAuth((s) => s.token);
   const savedAddress = useAuth((s) => s.user?.addresses[0]);
   const { items } = useCart();
+  const [address, setAddress] = useState<AddressDraft>(() => savedAddress ?? { country: DEFAULT_COUNTRY });
+  const [touched, setTouched] = useState<Partial<Record<keyof Address, boolean>>>({});
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const addressErrors = validateAddress(address);
 
   // Back from Stripe via "←" / cancel: release the reserved order. The cart is untouched.
   useEffect(() => {
@@ -38,16 +39,18 @@ function CheckoutForm() {
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
-    setSubmitting(true);
 
-    const form = new FormData(e.currentTarget);
-    const shippingAddress = Object.fromEntries(
-      FIELDS.map((f) => [f.name, String(form.get(f.name) ?? '').trim() || undefined]),
-    ) as unknown as Address;
+    const invalid = Object.keys(addressErrors) as (keyof Address)[];
+    if (invalid.length) {
+      setTouched(Object.fromEntries(invalid.map((k) => [k, true])));
+      document.querySelector<HTMLElement>(`[name="${invalid[0]}"]`)?.focus();
+      return;
+    }
+    setSubmitting(true);
 
     const body: CreateOrderInput = {
       items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
-      shippingAddress,
+      shippingAddress: normalizeAddress(address as Address),
     };
 
     try {
@@ -68,20 +71,16 @@ function CheckoutForm() {
   return (
     <div className="space-y-6">
     {notice && <p className="rounded-xl bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">{notice}</p>}
-    <form onSubmit={onSubmit} className="grid gap-8 lg:grid-cols-[1fr_320px]">
+    <form onSubmit={onSubmit} noValidate className="grid gap-8 lg:grid-cols-[1fr_320px]">
       <section className="card space-y-4 p-6">
         <h1 className="text-xl font-semibold">Shipping address</h1>
-        <div className="grid gap-4 sm:grid-cols-2">
-          {FIELDS.map((f) => (
-            <label key={f.name} className={`space-y-1 text-sm ${f.span ? 'sm:col-span-2' : ''}`}>
-              <span className="text-stone-600">
-                {f.label}
-                {f.required && ' *'}
-              </span>
-              <input name={f.name} required={f.required} defaultValue={savedAddress?.[f.name] ?? ''} className="input" />
-            </label>
-          ))}
-        </div>
+        <AddressFields
+          value={address}
+          onChange={setAddress}
+          errors={addressErrors}
+          touched={touched}
+          onBlur={(f) => setTouched((t) => ({ ...t, [f]: true }))}
+        />
       </section>
 
       <aside className="card h-fit space-y-4 p-6">

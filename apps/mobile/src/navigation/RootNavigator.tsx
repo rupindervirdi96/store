@@ -1,9 +1,10 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNavigationContainerRef, NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import * as Notifications from 'expo-notifications';
 import { useEffect } from 'react';
 import { Text } from 'react-native';
+import { StoreLogo } from '../components/StoreLogo';
+import { Notifications } from '../lib/notifications';
 import { cartCount, useCart } from '../store/cart';
 import { colors } from '../theme';
 import { AccountScreen } from '../screens/AccountScreen';
@@ -34,7 +35,7 @@ function Tabs() {
         ),
       })}
     >
-      <Tab.Screen name="Shop" component={ShopScreen} />
+      <Tab.Screen name="Shop" component={ShopScreen} options={{ headerTitle: () => <StoreLogo /> }} />
       <Tab.Screen name="Cart" component={CartScreen} options={{ tabBarBadge: count > 0 ? count : undefined }} />
       <Tab.Screen name="Orders" component={OrdersScreen} />
       <Tab.Screen name="Account" component={AccountScreen} />
@@ -44,7 +45,8 @@ function Tabs() {
 
 /** Opens the tracking screen when the user taps an order push notification. */
 function useNotificationDeepLinks() {
-  const lastResponse = Notifications.useLastNotificationResponse();
+  // Notifications is fixed for the app's lifetime, so the hook call order is stable.
+  const lastResponse = Notifications ? Notifications.useLastNotificationResponse() : null;
   useEffect(() => {
     const orderId = lastResponse?.notification.request.content.data?.orderId;
     if (typeof orderId === 'string' && navigationRef.isReady()) {

@@ -1,9 +1,9 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNavigationContainerRef, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import * as Notifications from 'expo-notifications';
 import { useEffect } from 'react';
-import { Platform, Text } from 'react-native';
+import { Text } from 'react-native';
+import { Notifications } from '../lib/notifications';
 import { CategoriesScreen } from '../screens/CategoriesScreen';
 import { EditItemScreen } from '../screens/EditItemScreen';
 import { LoginScreen } from '../screens/LoginScreen';
@@ -42,7 +42,8 @@ function Tabs() {
 
 /** Tapping a "new order" notification opens that order. */
 function useOrderNotificationLinks(enabled: boolean) {
-  const last = Platform.OS === 'web' ? null : Notifications.useLastNotificationResponse();
+  // Notifications is fixed for the app's lifetime, so the hook call order is stable.
+  const last = Notifications ? Notifications.useLastNotificationResponse() : null;
   useEffect(() => {
     const orderId = last?.notification.request.content.data?.orderId;
     if (enabled && typeof orderId === 'string' && navigationRef.isReady()) {

@@ -1,7 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
 import { create } from 'zustand';
 import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware';
-import type { AuthResponse, UserDTO } from '@store/shared';
+import type { AuthResponse, UserDTO, VerificationSentResponse } from '@store/shared';
 import { api } from '../lib/api';
 import { disconnectSocket } from '../lib/socket';
 
@@ -17,7 +17,10 @@ interface AuthState {
   user: UserDTO | null;
   hydrated: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  /** Emails a verification code; the account is created by verifyEmail. */
+  register: (name: string, email: string, password: string) => Promise<VerificationSentResponse>;
+  resendCode: (email: string) => Promise<VerificationSentResponse>;
+  verifyEmail: (email: string, code: string) => Promise<void>;
   logout: () => void;
   setUser: (user: UserDTO) => void;
 }
@@ -32,8 +35,14 @@ export const useAuth = create<AuthState>()(
         const res = await api<AuthResponse>('/auth/login', { method: 'POST', body: { email, password } });
         set({ token: res.token, user: res.user });
       },
-      async register(name, email, password) {
-        const res = await api<AuthResponse>('/auth/register', { method: 'POST', body: { name, email, password } });
+      register(name, email, password) {
+        return api<VerificationSentResponse>('/auth/register', { method: 'POST', body: { name, email, password } });
+      },
+      resendCode(email) {
+        return api<VerificationSentResponse>('/auth/register/resend', { method: 'POST', body: { email } });
+      },
+      async verifyEmail(email, code) {
+        const res = await api<AuthResponse>('/auth/register/verify', { method: 'POST', body: { email, code } });
         set({ token: res.token, user: res.user });
       },
       logout() {

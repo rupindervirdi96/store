@@ -1,7 +1,16 @@
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
-import type { Address, CheckoutResponse, CreateOrderInput, OrderDTO } from '@store/shared';
+import {
+  DEFAULT_COUNTRY,
+  normalizeAddress,
+  validateAddress,
+  type Address,
+  type CheckoutResponse,
+  type CreateOrderInput,
+  type OrderDTO,
+} from '@store/shared';
+import { AddressForm, type AddressDraft, type Touched } from '../components/AddressForm';
 import { Button } from '../components/Button';
 import { api, ApiError } from '../lib/api';
 import { formatPrice } from '../lib/format';
@@ -10,25 +19,16 @@ import { useAuth } from '../store/auth';
 import { cartTotal, useCart } from '../store/cart';
 import { ui } from '../theme';
 
-const FIELDS: { key: keyof Address; label: string; required?: boolean }[] = [
-  { key: 'line1', label: 'Address line 1', required: true },
-  { key: 'line2', label: 'Address line 2' },
-  { key: 'city', label: 'City', required: true },
-  { key: 'state', label: 'State / Province', required: true },
-  { key: 'postalCode', label: 'Postal code', required: true },
-  { key: 'country', label: 'Country', required: true },
-  { key: 'phone', label: 'Phone' },
-];
-
 export function CheckoutScreen({ navigation }: RootScreenProps<'Checkout'>) {
   const token = useAuth((s) => s.token);
   const saved = useAuth((s) => s.user?.addresses[0]);
   const { items, clear } = useCart();
-  const [address, setAddress] = useState<Partial<Address>>(saved ?? {});
+  const [address, setAddress] = useState<AddressDraft>(saved ?? { country: DEFAULT_COUNTRY });
+  const [touched, setTouched] = useState<Touched>({});
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const missing = FIELDS.filter((f) => f.required && !address[f.key]?.trim());
+  const addressErrors = validateAddress(address);
 
   async function waitForPayment(orderId: string): Promise<OrderDTO | null> {
     let latest: OrderDTO | null = null;
@@ -41,17 +41,17 @@ export function CheckoutScreen({ navigation }: RootScreenProps<'Checkout'>) {
   }
 
   async function placeOrder() {
-    if (missing.length) {
-      setError(`Please fill in: ${missing.map((m) => m.label).join(', ')}`);
+    const invalid = Object.keys(addressErrors) as (keyof Address)[];
+    if (invalid.length) {
+      setTouched(Object.fromEntries(invalid.map((k) => [k, true])));
+      setError('Please fix the highlighted fields above.');
       return;
     }
     setSubmitting(true);
     setError(null);
     const body: CreateOrderInput = {
       items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
-      shippingAddress: Object.fromEntries(
-        Object.entries(address).map(([k, v]) => [k, v?.trim() || undefined]),
-      ) as unknown as Address,
+      shippingAddress: normalizeAddress(address as Address),
       returnTo: 'app',
     };
     try {
@@ -77,17 +77,16 @@ export function CheckoutScreen({ navigation }: RootScreenProps<'Checkout'>) {
     <KeyboardAvoidingView style={ui.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }} keyboardShouldPersistTaps="handled">
         <Text style={ui.h2}>Shipping address</Text>
-        {FIELDS.map((f) => (
-          <TextInput
-            key={f.key}
-            style={ui.input}
-            placeholder={f.label + (f.required ? ' *' : '')}
-            value={address[f.key] ?? ''}
-            onChangeText={(v) => setAddress((a) => ({ ...a, [f.key]: v }))}
-            keyboardType={f.key === 'phone' ? 'phone-pad' : 'default'}
-            autoComplete={f.key === 'postalCode' ? 'postal-code' : f.key === 'phone' ? 'tel' : undefined}
-          />
-        ))}
+        <AddressForm
+          value={address}
+          onChange={(next) => {
+            setAddress(next);
+            if (error) setError(null);
+          }}
+          errors={addressErrors}
+          touched={touched}
+          onBlur={(f) => setTouched((t) => ({ ...t, [f]: true }))}
+        />
 
         <View style={[ui.card, { gap: 6, marginTop: 8 }]}>
           <Text style={ui.h2}>Summary</Text>

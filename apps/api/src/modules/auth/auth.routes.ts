@@ -14,4 +14,6 @@ const authLimiter = rateLimit({
 export const authRouter = Router();
 
 authRouter.post('/register', authLimiter, ctrl.register);
+authRouter.post('/register/resend', authLimiter, ctrl.resendCode);
+authRouter.post('/register/verify', authLimiter, ctrl.verifyEmail);
 authRouter.post('/login', authLimiter, ctrl.login);

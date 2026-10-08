@@ -1,10 +1,12 @@
+import { STORE_BRAND } from '@store/shared';
+
 /**
  * Store details shown on the home page, footer and contact sections.
  * Everything here is placeholder content — replace it with your real details.
  */
 export const store = {
-  name: 'Ember & Bun',
-  tagline: 'Smashed fresh. Delivered hot.',
+  name: STORE_BRAND.name,
+  tagline: STORE_BRAND.tagline,
   description:
     'Hand-pressed burgers, crispy sides and thick shakes, made to order from fresh ingredients — and tracked live from our grill to your door.',
 
