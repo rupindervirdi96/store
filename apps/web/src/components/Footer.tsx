@@ -1,11 +1,15 @@
 import Link from 'next/link';
-import type { CategoryDTO } from '@store/shared';
+import { DEFAULT_STORE_HOURS, groupWeeklyHours, type CategoryDTO, type StoreInfoDTO } from '@store/shared';
 import { tryApi } from '@/lib/api';
 import { directionsUrl, fullAddress, store, telHref } from '@/config/store';
 import { Logo } from './Logo';
 
 export async function Footer() {
-  const categories = await tryApi<CategoryDTO[]>('/categories', { next: { revalidate: 300 } });
+  const [categories, storeInfo] = await Promise.all([
+    tryApi<CategoryDTO[]>('/categories', { next: { revalidate: 300 } }),
+    tryApi<StoreInfoDTO>('/store', { next: { revalidate: 60 } }),
+  ]);
+  const schedule = groupWeeklyHours((storeInfo?.hours ?? DEFAULT_STORE_HOURS).weekly);
   return (
     <footer className="mt-auto bg-ink text-stone-300">
       <div className="container-page grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-4">
@@ -35,7 +39,7 @@ export async function Footer() {
         <div>
           <h3 className="mb-4 text-sm font-semibold text-white">Opening hours</h3>
           <ul className="space-y-2 text-sm">
-            {store.hours.map((h) => (
+            {schedule.map((h) => (
               <li key={h.days}>
                 <span className="block text-stone-400">{h.days}</span>
                 {h.time}

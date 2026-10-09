@@ -1,9 +1,19 @@
 import Link from 'next/link';
-import type { CategoryDTO, Paginated, ProductDTO, ReviewsDTO } from '@store/shared';
+import {
+  DEFAULT_STORE_HOURS,
+  formatClosureDate,
+  groupWeeklyHours,
+  type CategoryDTO,
+  type Paginated,
+  type ProductDTO,
+  type ReviewsDTO,
+  type StoreInfoDTO,
+} from '@store/shared';
 import { ProductCard } from '@/components/ProductCard';
 import { ReviewsSection } from '@/components/ReviewsSection';
 import { SectionHeading } from '@/components/SectionHeading';
 import { StarRating } from '@/components/StarRating';
+import { StoreStatusBadge } from '@/components/StoreStatus';
 import { directionsUrl, fullAddress, store, telHref } from '@/config/store';
 import { tryApi } from '@/lib/api';
 
@@ -38,12 +48,15 @@ function Icon({ d }: { d: string }) {
 }
 
 export default async function HomePage() {
-  const [offers, popular, categories, reviews] = await Promise.all([
+  const [offers, popular, categories, reviews, storeInfo] = await Promise.all([
     tryApi<Paginated<ProductDTO>>('/products?onSale=true&limit=4&sort=price_asc', { next: { revalidate: 60 } }),
     tryApi<Paginated<ProductDTO>>('/products?sort=popular&limit=8', { next: { revalidate: 60 } }),
     tryApi<CategoryDTO[]>('/categories', { next: { revalidate: 60 } }),
     tryApi<ReviewsDTO>('/reviews', { next: { revalidate: 3600 } }),
+    tryApi<StoreInfoDTO>('/store', { next: { revalidate: 60 } }),
   ]);
+  const schedule = groupWeeklyHours((storeInfo?.hours ?? DEFAULT_STORE_HOURS).weekly);
+  const closures = storeInfo?.upcomingClosures.slice(0, 3) ?? [];
 
   const google = reviews?.configured ? reviews : null;
   // Already in the admin-defined order.
@@ -65,10 +78,7 @@ export default async function HomePage() {
         <div className="absolute inset-0 -z-10 bg-gradient-to-r from-ink via-ink/80 to-ink/10" />
         <div className="container-page flex min-h-[560px] flex-col justify-center py-20 sm:min-h-[640px]">
           <div className="max-w-xl space-y-6 text-white">
-            <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-sm font-medium backdrop-blur">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
-              Now taking online orders
-            </span>
+            <StoreStatusBadge initial={storeInfo} tone="dark" />
             <h1 className="text-5xl font-extrabold leading-[1.05] sm:text-6xl">
               Smashed fresh.
               <br />
@@ -213,13 +223,23 @@ export default async function HomePage() {
               <div>
                 <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-stone-500">Opening hours</h3>
                 <ul className="space-y-2 text-sm">
-                  {store.hours.map((h) => (
+                  {schedule.map((h) => (
                     <li key={h.days}>
                       <span className="block font-medium">{h.days}</span>
                       <span className="text-stone-600">{h.time}</span>
                     </li>
                   ))}
                 </ul>
+                {closures.length > 0 && (
+                  <ul className="mt-4 space-y-1 text-sm">
+                    {closures.map((c) => (
+                      <li key={c.date} className="text-rose-700">
+                        <span className="font-medium">Closed {formatClosureDate(c.date)}</span>
+                        {c.note && <span className="text-rose-600"> · {c.note}</span>}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
               <div>
                 <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-stone-500">Find us</h3>

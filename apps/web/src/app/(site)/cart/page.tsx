@@ -1,11 +1,14 @@
 'use client';
 
 import Link from 'next/link';
+import { ClosedNotice } from '@/components/StoreStatus';
 import { useHydrated } from '@/hooks/useHydrated';
+import { useStoreInfo } from '@/hooks/useStoreInfo';
 import { formatPrice } from '@/lib/format';
 import { cartTotal, useCart } from '@/store/cart';
 
 export default function CartPage() {
+  const storeInfo = useStoreInfo();
   const hydrated = useHydrated();
   const { items, setQuantity, remove } = useCart();
 
@@ -79,6 +82,7 @@ export default function CartPage() {
           <span>{formatPrice(cartTotal(items))}</span>
         </div>
         <p className="text-xs text-stone-500">Final prices and stock are confirmed at checkout.</p>
+        <ClosedNotice info={storeInfo} />
         <Link href="/checkout" className="btn-primary w-full py-3">
           Checkout
         </Link>

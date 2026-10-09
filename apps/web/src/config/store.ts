@@ -19,12 +19,7 @@ export const store = {
   phone: '(555) 012-3456',
   email: 'hello@example.com',
 
-  /** Displayed in order; times are local to the store. */
-  hours: [
-    { days: 'Monday – Thursday', time: '11:00 am – 10:00 pm' },
-    { days: 'Friday – Saturday', time: '11:00 am – 11:00 pm' },
-    { days: 'Sunday', time: '12:00 pm – 9:00 pm' },
-  ],
+  // Opening hours are managed in Admin → Hours (GET /store).
 
   /** Typical prep time shown in the hero. */
   prepTime: '20 min',

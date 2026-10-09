@@ -11,6 +11,7 @@ import {
 import { AppError } from '../../utils/AppError';
 import { createCheckoutSession, expireCheckoutSession, refundPayment, stripeEnabled } from '../payments/stripe';
 import { ProductModel } from '../products/product.model';
+import { assertAcceptingOrders } from '../store/store.service';
 import { broadcastOrderCreated, broadcastOrderUpdated, broadcastStockChanged } from './order.events';
 import { OrderModel, orderCustomerId, toOrderDTO, type Order, type OrderDocument } from './order.model';
 import type { CreateOrderInput, ListOrdersInput, UpdateStatusInput } from './order.schemas';
@@ -29,6 +30,7 @@ const round2 = (n: number) => Math.round(n * 100) / 100;
  */
 export async function createOrder(customerId: string, input: CreateOrderInput): Promise<CheckoutResponse> {
   if (!stripeEnabled()) throw new AppError(503, 'Online payments are not set up yet. Please try again later.');
+  await assertAcceptingOrders();
 
   // Merge duplicate lines for the same product.
   const qtyByProduct = new Map<string, number>();

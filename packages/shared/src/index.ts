@@ -5,6 +5,7 @@
  */
 
 export * from './address';
+export * from './hours';
 
 /** Store name and tagline shown by every client and in emails. */
 export const STORE_BRAND = {

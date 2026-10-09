@@ -14,6 +14,7 @@ export type RootStackParamList = {
   Main: NavigatorScreenParams<TabParamList>;
   OrderDetail: { id: string };
   EditItem: { id?: string };
+  Hours: undefined;
 };
 
 export type RootScreenProps<T extends keyof RootStackParamList> = NativeStackScreenProps<RootStackParamList, T>;

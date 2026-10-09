@@ -6,6 +6,7 @@ import { Text } from 'react-native';
 import { Notifications } from '../lib/notifications';
 import { CategoriesScreen } from '../screens/CategoriesScreen';
 import { EditItemScreen } from '../screens/EditItemScreen';
+import { HoursScreen } from '../screens/HoursScreen';
 import { LoginScreen } from '../screens/LoginScreen';
 import { MenuScreen } from '../screens/MenuScreen';
 import { OrderDetailScreen } from '../screens/OrderDetailScreen';
@@ -73,6 +74,7 @@ export function RootNavigator() {
               options={{ presentation: 'modal', title: 'Order' }}
             />
             <Stack.Screen name="EditItem" component={EditItemScreen} options={{ title: 'Menu item' }} />
+            <Stack.Screen name="Hours" component={HoursScreen} options={{ title: 'Opening hours' }} />
           </>
         )}
       </Stack.Navigator>

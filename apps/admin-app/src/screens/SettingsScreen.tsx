@@ -1,5 +1,7 @@
+import { useNavigation } from '@react-navigation/native';
 import Constants from 'expo-constants';
 import { Linking, Platform, ScrollView, Switch, Text, View } from 'react-native';
+import { StoreStatusCard, useAdminStoreInfo } from '../components/StoreStatusCard';
 import { Button, Section } from '../components/ui';
 import { API_URL, WEB_URL } from '../lib/api';
 import { confirm } from '../lib/dialog';
@@ -24,9 +26,17 @@ export function SettingsScreen() {
   const logout = useAuth((s) => s.logout);
   const settings = useSettings();
   const { pad } = useLayout();
+  const navigation = useNavigation();
+  const [storeInfo, setStoreInfo] = useAdminStoreInfo();
 
   return (
     <ScrollView style={ui.screen} contentContainerStyle={{ padding: pad, gap: 14, maxWidth: 720, width: '100%', alignSelf: 'center' }}>
+      <StoreStatusCard
+        info={storeInfo}
+        onChange={setStoreInfo}
+        right={<Button title="Edit hours" variant="secondary" size="sm" onPress={() => navigation.navigate('Hours')} />}
+      />
+
       <Section title="Signed in">
         <Text style={[ui.body, { fontWeight: '700' }]}>{user?.name}</Text>
         <Text style={ui.muted}>{user?.email}</Text>

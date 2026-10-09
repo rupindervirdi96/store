@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import type { Paginated, ProductDTO } from '@store/shared';
 import { PriceText } from '../components/PriceText';
+import { StoreStatusBanner } from '../components/StoreStatusBanner';
+import { useStoreInfo } from '../hooks/useStoreInfo';
 import { api, imageUri } from '../lib/api';
 import type { TabScreenProps } from '../navigation/types';
 import { colors, ui } from '../theme';
@@ -18,6 +20,7 @@ export function ShopScreen({ navigation }: TabScreenProps<'Shop'>) {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const storeInfo = useStoreInfo();
 
   const fetchPage = useCallback(
     async (p: number, signal?: AbortSignal) => {
@@ -70,6 +73,7 @@ export function ShopScreen({ navigation }: TabScreenProps<'Shop'>) {
   return (
     <View style={ui.screen}>
       <View style={{ padding: 16, paddingBottom: 8, gap: 12 }}>
+        <StoreStatusBanner info={storeInfo} />
         <TextInput
           style={ui.input}
           placeholder="Search products…"
