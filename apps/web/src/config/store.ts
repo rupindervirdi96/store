@@ -2,7 +2,7 @@ import { STORE_BRAND } from '@store/shared';
 
 /**
  * Store details shown on the home page, footer and contact sections.
- * Everything here is placeholder content — replace it with your real details.
+ * The description and social links are still placeholders.
  */
 export const store = {
   name: STORE_BRAND.name,
@@ -11,13 +11,13 @@ export const store = {
     'Hand-pressed burgers, crispy sides and thick shakes, made to order from fresh ingredients — and tracked live from our grill to your door.',
 
   address: {
-    line1: '123 Example Street',
-    city: 'Springfield',
-    region: 'ST',
-    postalCode: '00000',
+    line1: '1-73 rue St-Onge',
+    city: 'Gatineau',
+    region: 'QC',
+    postalCode: 'J8Y 5V1',
   },
-  phone: '(555) 012-3456',
-  email: 'hello@example.com',
+  phone: '(438) 998-1746',
+  email: 'virdimarketingsolutions@gmail.com',
 
   // Opening hours are managed in Admin → Hours (GET /store).
 

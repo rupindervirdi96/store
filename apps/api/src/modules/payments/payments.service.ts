@@ -110,7 +110,16 @@ export async function sweepUnpaidOrders(): Promise<void> {
         await cancelOrder(order.id, null, 'Payment could not be started', { system: true });
         continue;
       }
-      const session = await retrieveCheckoutSession(sessionId);
+      const session = await retrieveCheckoutSession(sessionId).catch((err: unknown) => {
+        // The session belongs to another mode/account (e.g. created with test
+        // keys before switching to live), so it can never be paid here.
+        if ((err as { code?: string })?.code === 'resource_missing') return null;
+        throw err;
+      });
+      if (!session) {
+        await cancelOrder(order.id, null, 'Payment session no longer exists', { system: true });
+        continue;
+      }
       if (session.payment_status === 'paid') await confirmCheckout(session);
       else await failCheckout(session, 'Payment not completed in time');
     } catch (err) {

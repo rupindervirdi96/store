@@ -6,14 +6,7 @@
     "version": "0.1.0",
     "orientation": "default",
     "userInterfaceStyle": "light",
-    "ios": {
-      "bundleIdentifier": "com.example.storekitchen",
-      "supportsTablet": true,
-      "infoPlist": {
-        "NSCameraUsageDescription": "Take photos of menu items.",
-        "NSPhotoLibraryUsageDescription": "Choose photos for menu items."
-      }
-    },
+    "platforms": ["android", "web"],
     "android": {
       "package": "com.example.storekitchen",
       "permissions": ["CAMERA", "VIBRATE"]
