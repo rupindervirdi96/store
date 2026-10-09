@@ -1,4 +1,4 @@
-import type { DemoInfoDTO } from '@store/shared';
+import { DEFAULT_STORE_HOURS, WEEKDAYS, type DemoInfoDTO } from '@store/shared';
 import { env } from '../../config/env';
 import { hashPassword } from '../auth/auth.service';
 import { CategoryModel } from '../categories/category.model';
@@ -6,6 +6,7 @@ import { MediaModel } from '../media/media.model';
 import { deleteIfUnreferenced } from '../media/media.service';
 import { OrderModel } from '../orders/order.model';
 import { ProductModel } from '../products/product.model';
+import { StoreSettingsModel } from '../store/store.model';
 import { UserModel } from '../users/user.model';
 import { CATEGORIES, MENU, seedPhotoRef } from './catalog';
 
@@ -71,17 +72,40 @@ async function restoreCatalog(): Promise<void> {
   );
 }
 
+/**
+ * Open all day, every day, with no closures or pause, so visitors can place
+ * a test order whenever they try the demo.
+ */
+async function restoreStoreHours(): Promise<void> {
+  const allDay = { closed: false, open: '00:00', close: '23:59' };
+  await StoreSettingsModel.updateOne(
+    { key: 'main' },
+    {
+      $set: {
+        timezone: DEFAULT_STORE_HOURS.timezone,
+        weekly: Object.fromEntries(WEEKDAYS.map((d) => [d, allDay])),
+        closures: [],
+        paused: false,
+        pausedUntil: null,
+      },
+    },
+    { upsert: true },
+  );
+}
+
 /** On startup: make a fresh demo database usable without running the seed script. */
 export async function prepareDemo(): Promise<void> {
   if (!demoEnabled()) return;
   await ensureDemoAccounts();
   if ((await ProductModel.estimatedDocumentCount()) === 0) await restoreCatalog();
+  if (!(await StoreSettingsModel.exists({ key: 'main' }))) await restoreStoreHours();
   console.log('[demo] demo mode is ON — demo accounts are published at /api/v1/demo');
 }
 
 /**
  * Restores a clean demo: removes all orders and sign-ups, restores the menu,
- * categories and demo logins, and deletes uploaded photos nothing uses.
+ * categories, opening hours and demo logins, and deletes uploaded photos
+ * nothing uses.
  */
 export async function resetDemo(): Promise<{ ordersRemoved: number; usersRemoved: number; photosRemoved: number }> {
   const [orders, users] = await Promise.all([
@@ -90,6 +114,7 @@ export async function resetDemo(): Promise<{ ordersRemoved: number; usersRemoved
   ]);
   await ensureDemoAccounts();
   await restoreCatalog();
+  await restoreStoreHours();
 
   const media = await MediaModel.find({}, { _id: 1 }).lean();
   const photosRemoved = await deleteIfUnreferenced(media.map((m) => `media:${m._id.toString()}`));

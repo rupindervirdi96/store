@@ -186,6 +186,7 @@ A showcase version for clients. It runs as a **separate** API with its own datab
   - Customer: `customer@demo.example.com` / `demo1234`
   - Admin: `admin@demo.example.com` / `demo1234`
 - **Reset demo data** (admin area or guide) deletes all orders and sign-ups and restores the menu.
+- Opening hours start as open all day, every day (and reset back to that), so test orders work at any time. Visitors can still try Admin → Hours and pausing orders.
 - Payments use Stripe **test** keys; the guide shows the test cards.
 
 ## 7. Production hardening checklist

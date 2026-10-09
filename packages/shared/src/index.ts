@@ -4,6 +4,8 @@
  * names) lives here so every client stays in lockstep with the backend.
  */
 
+export * from './hours';
+
 export const ROLES = ['customer', 'admin'] as const;
 export type Role = (typeof ROLES)[number];
 

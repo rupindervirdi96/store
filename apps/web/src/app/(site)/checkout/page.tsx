@@ -4,6 +4,8 @@ import { useEffect, useState, type FormEvent } from 'react';
 import type { Address, CheckoutResponse, CreateOrderInput } from '@store/shared';
 import { DemoCardHint } from '@/components/demo/DemoHints';
 import { RequireAuth } from '@/components/RequireAuth';
+import { ClosedNotice } from '@/components/StoreStatus';
+import { useStoreInfo } from '@/hooks/useStoreInfo';
 import { api, ApiError } from '@/lib/api';
 import { formatPrice } from '@/lib/format';
 import { useAuth } from '@/store/auth';
@@ -26,6 +28,8 @@ function CheckoutForm() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const storeInfo = useStoreInfo();
+  const closed = storeInfo ? !storeInfo.status.isOpen : false;
 
   // Back from Stripe via "←" / cancel: release the reserved order. The cart is untouched.
   useEffect(() => {
@@ -103,8 +107,9 @@ function CheckoutForm() {
         </div>
         {error && <p className="rounded-lg bg-rose-50 p-3 text-sm text-rose-700">{error}</p>}
         <DemoCardHint />
-        <button className="btn-primary w-full py-3" disabled={submitting}>
-          {submitting ? 'Taking you to payment…' : `Pay ${formatPrice(cartTotal(items))}`}
+        <ClosedNotice info={storeInfo} />
+        <button className="btn-primary w-full py-3" disabled={submitting || closed}>
+          {submitting ? 'Taking you to payment…' : closed ? 'Ordering unavailable' : `Pay ${formatPrice(cartTotal(items))}`}
         </button>
         <p className="flex items-center justify-center gap-1.5 text-center text-xs text-stone-500">
           <svg viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5" aria-hidden>

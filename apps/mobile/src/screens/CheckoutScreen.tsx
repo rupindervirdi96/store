@@ -3,6 +3,8 @@ import { KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View } fro
 import * as WebBrowser from 'expo-web-browser';
 import type { Address, CheckoutResponse, CreateOrderInput, OrderDTO } from '@store/shared';
 import { Button } from '../components/Button';
+import { StoreStatusBanner } from '../components/StoreStatusBanner';
+import { useStoreInfo } from '../hooks/useStoreInfo';
 import { api, ApiError } from '../lib/api';
 import { formatPrice } from '../lib/format';
 import type { RootScreenProps } from '../navigation/types';
@@ -29,6 +31,8 @@ export function CheckoutScreen({ navigation }: RootScreenProps<'Checkout'>) {
   const [submitting, setSubmitting] = useState(false);
 
   const missing = FIELDS.filter((f) => f.required && !address[f.key]?.trim());
+  const storeInfo = useStoreInfo();
+  const closed = storeInfo ? !storeInfo.status.isOpen : false;
 
   async function waitForPayment(orderId: string): Promise<OrderDTO | null> {
     let latest: OrderDTO | null = null;
@@ -105,8 +109,14 @@ export function CheckoutScreen({ navigation }: RootScreenProps<'Checkout'>) {
           </View>
         </View>
 
+        {closed && <StoreStatusBanner info={storeInfo} />}
         {error && <Text style={ui.error}>{error}</Text>}
-        <Button title={`Pay ${formatPrice(cartTotal(items))}`} onPress={placeOrder} loading={submitting} disabled={items.length === 0} />
+        <Button
+          title={closed ? 'Ordering unavailable' : `Pay ${formatPrice(cartTotal(items))}`}
+          onPress={placeOrder}
+          loading={submitting}
+          disabled={items.length === 0 || closed}
+        />
         <Text style={[ui.muted, { textAlign: 'center' }]}>Secure payment by Stripe — card, Apple Pay or Google Pay.</Text>
       </ScrollView>
     </KeyboardAvoidingView>

@@ -9,6 +9,7 @@ const NAV = [
   { href: '/admin', label: 'Live orders', match: (p: string) => p === '/admin' },
   { href: '/admin/menu', label: 'Menu', match: (p: string) => p.startsWith('/admin/menu') },
   { href: '/admin/categories', label: 'Categories', match: (p: string) => p.startsWith('/admin/categories') },
+  { href: '/admin/hours', label: 'Hours', match: (p: string) => p.startsWith('/admin/hours') },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
